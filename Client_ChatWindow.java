@@ -5,16 +5,29 @@ import java.util.*;
 
 public class Client_ChatWindow extends JFrame implements ActionListener {
 
+    // @lfred: well, again this is a singleton
+    static Client_ChatWindow mp_chatWin;
+
     // @lfred: UI components
     JTextArea   m_chatBoard;
     JTextField  m_cmdText;
     JButton     m_sendBtn;
     JButton     m_logoutBtn;
+    
+    public static Client_ChatWindow getChatWindow () {
+        
+        if (mp_chatWin == null) {
+            mp_chatWin = new Client_ChatWindow ();
+        }
+        
+        return mp_chatWin;
+    }
 
-    public Client_ChatWindow () {
+    private Client_ChatWindow () {
+        
         setLayout (new GridBagLayout ());
 
-        m_chatBoard = new JTextArea (10, 45);
+        m_chatBoard = new JTextArea (10, 46);
         m_chatBoard.setEditable (false);
         JScrollPane jp = new JScrollPane (m_chatBoard);
         GridBagConstraints c1 = new GridBagConstraints ();
@@ -78,35 +91,48 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                     // @lfred: commands without params
                     case Client_Command.M_CMD_TYPE_SEND_WHOELSE:
                     case Client_Command.M_CMD_TYPE_SEND_WHOLASTH:
-                    case Client_Command.M_CMD_TYPE_SEND_LOGOUT:
+                    case Client_Command.M_CMD_TYPE_SEND_LOGOUT: {
                         cc = new Client_Command (cmdIdx, null, null);
+                    } 
                     break;
 
                     // @lfred: commands with 1 param
                     case Client_Command.M_CMD_TYPE_SEND_BLOCK:
                     case Client_Command.M_CMD_TYPE_SEND_UNBLOCK:
-                    case Client_Command.M_CMD_TYPE_SEND_BROADCAST:
+                    case Client_Command.M_CMD_TYPE_SEND_BROADCAST: {
                         if (strToken.hasMoreElements ()) {
                             p1 = strToken.nextToken ();
-                            cc = new Client_Command (cmdIdx, p1, null);
+                            
+                            if (p1 != null)
+                                cc = new Client_Command (cmdIdx, p1, null);
+                            else
+                                System.out.println ("!!! Empty P1 - incorrect format !!!");
                         } else {
                             System.out.println ("!!! Incorrect User Command !!!");
                         }
+                    } 
                     break;
 
                     // @lfred: commands with 2 params
-                    case Client_Command.M_CMD_TYPE_SEND_MESSAGE:
+                    case Client_Command.M_CMD_TYPE_SEND_MESSAGE: {
 
                         if (strToken.hasMoreElements ()) {
                             p1 = strToken.nextToken ();
                             
-                            // @lfred: POTENTIAL BUG HERE
-                            p2 = str.substring (str.indexOf (p1) + p1.length());
-                            cc = new Client_Command (cmdIdx, p1, p2);
+                            if (p1 != null) {
+                                p2 = str.substring (str.indexOf (p1) + p1.length());
+                                                
+                                if (p2 != null)
+                                    cc = new Client_Command (cmdIdx, p1, p2);
+                                else
+                                    System.out.println ("!!! Empty P2 !!!");
+                            } else {
+                                System.out.println ("!!! Empty P1 !!!");
+                            }
                         } else {
                             System.out.println ("!!! Incorrect User Command !!!");
                         }
-                    break;
+                    } break;
 
                     default:
                         System.out.println ("!!! Incorrect User Command !!!");
@@ -121,7 +147,17 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     public void actionPerformed (ActionEvent e) {
     
         if (e.getSource () == m_sendBtn) {
-            Client_Command cc = parsingCommand (m_cmdText.getText ());
+            
+            String t;
+            
+            try {
+                t = m_cmdText.getText ();
+            } catch (Exception ee) {
+                // @lfred: empty string - just return;
+                return;
+            }
+            
+            Client_Command cc = parsingCommand (t);
             
             if (cc != null) {
                 Client_ProcThread.getProcThread ().enqueueCmd (cc);
@@ -129,9 +165,14 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             }
             
         } else if (e.getSource () == m_logoutBtn) {
+            // @lfred: TODO - send logout command
         } else {
             System.out.println ("!!! BUG: Bad event !!!");
             Thread.dumpStack ();
         }
+    }
+    
+    public void receiveEvent (CommObject cObj) {
+        
     }
 }
