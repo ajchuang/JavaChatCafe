@@ -96,13 +96,22 @@ public class Client_ProcThread implements Runnable {
         switch (CC) {
             case Client_Command.M_CMD_TYPE_LOGIN:
                 return CommObject.M_COMM_SEND_LOGIN;
-            case Client_Command.M_CMD_TYPE_SEND_WHOELSE:
-                return
-    public final static int M_CMD_TYPE_SEND_WHOLASTH = 4;
-    public final static int M_CMD_TYPE_SEND_BROADCAST = 5;
-    public final static int M_CMD_TYPE_SEND_MESSAGE = 6;
 
-    public final static int M_CMD_TYPE_SEND_LOGOUT = 9;
+
+            // @lfred: TODO - to fill
+            case Client_Command.M_CMD_TYPE_SEND_WHOELSE:
+                return 0;
+            case Client_Command.M_CMD_TYPE_SEND_WHOLASTH:
+                return 0;
+            case Client_Command.M_CMD_TYPE_SEND_BROADCAST:
+                return 0;
+            case Client_Command.M_CMD_TYPE_SEND_MESSAGE:
+                return 0;
+            case Client_Command.M_CMD_TYPE_SEND_LOGOUT:
+                return 0;
+        }
+
+        return 0;
     }
 
     public void run () {
@@ -127,7 +136,7 @@ public class Client_ProcThread implements Runnable {
                 case Client_Command.M_CMD_TYPE_SEND_UNBLOCK: {
                     // @lfred locally handled
                 }
-                break
+                break;
 
                 default:
                     int coCmd = translateCCtoCO (sCmd.getCmdType ());
