@@ -12,8 +12,10 @@ class CommObject implements Serializable {
     public static final int M_COMM_RES_LOGIN_FAIL = 4;
     
     public static final int M_COMM_SEND_WHOELSE   = 5;
-    public static final int M_COMM_SEND_MESSAGE   = 6;
-    public static final int M_COMM_SEND_BROADCAST = 7;
+    public static final int M_COMM_RES_WHOELSE    = 6;
+    
+    public static final int M_COMM_SEND_MESSAGE   = 7;
+    public static final int M_COMM_SEND_BROADCAST = 8;
 
     int m_opCode;
     String m_str;

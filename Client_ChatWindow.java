@@ -100,6 +100,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                     case Client_Command.M_CMD_TYPE_SEND_BLOCK:
                     case Client_Command.M_CMD_TYPE_SEND_UNBLOCK:
                     case Client_Command.M_CMD_TYPE_SEND_BROADCAST: {
+                        
                         if (strToken.hasMoreElements ()) {
                             p1 = strToken.nextToken ();
                             
@@ -107,9 +108,8 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                                 cc = new Client_Command (cmdIdx, p1, null);
                             else
                                 System.out.println ("!!! Empty P1 - incorrect format !!!");
-                        } else {
+                        } else
                             System.out.println ("!!! Incorrect User Command !!!");
-                        }
                     } 
                     break;
 
@@ -126,12 +126,10 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                                     cc = new Client_Command (cmdIdx, p1, p2);
                                 else
                                     System.out.println ("!!! Empty P2 !!!");
-                            } else {
+                            } else
                                 System.out.println ("!!! Empty P1 !!!");
-                            }
-                        } else {
+                        } else
                             System.out.println ("!!! Incorrect User Command !!!");
-                        }
                     } break;
 
                     default:
@@ -177,7 +175,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     public void receiveEvent (CommObject cObj) {
         
         System.out.println ("receiveEvent - updateing UI.");
-        
+         
         switch (cObj.getOpCode ()) {
             
             case CommObject.M_COMM_SEND_MESSAGE:
