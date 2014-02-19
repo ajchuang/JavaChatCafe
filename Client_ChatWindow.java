@@ -172,7 +172,22 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         }
     }
     
+    // @lfred:  the function is used to receive the server commands and 
+    //          display info on the textArea 
     public void receiveEvent (CommObject cObj) {
         
+        System.out.println ("receiveEvent - updateing UI.");
+        
+        switch (cObj.getOpCode ()) {
+            
+            case CommObject.M_COMM_SEND_MESSAGE:
+                // update UI
+            break;
+            
+            case CommObject.M_COMM_SEND_BROADCAST:
+                // update UI
+            break;
+        }
     }
 }
+
