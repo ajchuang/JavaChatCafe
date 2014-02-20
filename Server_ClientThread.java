@@ -2,11 +2,9 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-//  PROTOCOL:
-//      b[0] = 0x56
-//      b[1] = OP_CODE
-//      b[2] = DATA_LENGTH
-//      b[3] - b[3+DATA_LENGTH - 1] = DATA
+//  Each client has its own state:
+//      CONNECTED - not login yet
+//      READY - LOGIN
 public class Server_ClientThread implements Runnable {
 
     static final int M_CLIENT_STATE_CONNECTED = 0;
@@ -56,8 +54,8 @@ public class Server_ClientThread implements Runnable {
                 if (m_loginCount < 3) {
                     m_loginCount++;
                     
-                    CommObject nco = new CommObject (CommObject.M_COMM_RES_LOGIN_FAIL, null, null);
-                    Server_Command sc = new Server_Command (Server_Command.M_CMD_SEND_COMM_OBJ, m_cid, nco);
+                    CommObject nco = new CommObject (M_COMM_RES_LOGIN_FAIL, null, null);
+                    Server_Command sc = new Server_Command (M_CMD_RESP_LOGIN_FAIL, m_cid, nco);
                     Server_ProcThread.getServProcThread().enqueueCmd (sc);
                 } else {
                     // more than 3 tries -
@@ -68,8 +66,8 @@ public class Server_ClientThread implements Runnable {
                 System.out.println ("Auth Passed");
                 m_state = M_CLIENT_STATE_READY;
 
-                CommObject nco = new CommObject (CommObject.M_COMM_RES_LOGIN_OK, null, null);
-                Server_Command sc = new Server_Command (Server_Command.M_CMD_SEND_COMM_OBJ, m_cid, nco);
+                CommObject nco = new CommObject (M_COMM_RES_LOGIN_OK, null, null);
+                Server_Command sc = new Server_Command (M_CMD_RESP_LOGIN_FAIL, m_cid, nco);
                 Server_ProcThread.getServProcThread().enqueueCmd (sc);
             }
         } else {

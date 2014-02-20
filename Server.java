@@ -2,10 +2,10 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-public class Server {//implements ServerInterface {
-
+public class Server {
+    
     // System Configuration
-    public static int DEFAULT_PORT = 3000;
+    public static int DEFAULT_PORT = 5566;
 
 
     // Server Private Data
@@ -63,10 +63,10 @@ public class Server {//implements ServerInterface {
                         sc));
 
                 System.out.println (
-                    "A client from " +
+                    "### a new client from " +
                     sc.getInetAddress().toString() + ":" +
                     Integer.toString (sc.getPort ()) +
-                    " is connected");
+                    " is connected ###");
 
             } catch (Exception e) {
                 System.out.println (e);

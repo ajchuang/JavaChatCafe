@@ -199,7 +199,7 @@ public class Server_ProcThread implements Runnable {
                 }
                 break;
                 
-                case Server_Command.M_CMD_SEND_WHOELSE: {
+                case Server_Command.M_CMD_RESP_WHOELSE: {
                     
                 }
                 break;

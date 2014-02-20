@@ -1,0 +1,15 @@
+public enum CommObjectType {
+
+    //M_COMM_SEND_STRING    = 0;
+    //M_COMM_SEND_COMMAND   = 1;
+    
+    M_COMM_SEND_LOGIN,
+    M_COMM_RESP_LOGIN_OK,
+    M_COMM_RESP_LOGIN_FAIL,
+    
+    M_COMM_SEND_WHOELSE,
+    M_COMM_RESP_WHOELSE,
+    
+    M_COMM_SEND_MESSAGE,
+    M_COMM_SEND_BROADCAST
+}

@@ -1,0 +1,157 @@
+Client.java:33: error: cannot find symbol
+                System.out.println (co.getString ());
+                                      ^
+  symbol:   method getString()
+  location: variable co of type CommObject
+Client.java:38: error: an enum switch case label must be the unqualified name of an enumeration constant
+                    case CommObject.M_COMM_RES_LOGIN_OK:
+                                   ^
+Client.java:43: error: an enum switch case label must be the unqualified name of an enumeration constant
+                    case CommObject.M_COMM_RES_LOGIN_FAIL:
+                                   ^
+Client.java:43: error: duplicate case label
+                    case CommObject.M_COMM_RES_LOGIN_FAIL:
+                    ^
+Client_ChatWindow.java:181: error: an enum switch case label must be the unqualified name of an enumeration constant
+            case CommObject.M_COMM_SEND_MESSAGE:
+                           ^
+Client_ChatWindow.java:185: error: an enum switch case label must be the unqualified name of an enumeration constant
+            case CommObject.M_COMM_SEND_BROADCAST:
+                           ^
+Client_ChatWindow.java:185: error: duplicate case label
+            case CommObject.M_COMM_SEND_BROADCAST:
+            ^
+Client_ChatWindow.java:189: error: an enum switch case label must be the unqualified name of an enumeration constant
+            case CommObject.M_COMM_RES_WHOELSE:
+                           ^
+Client_ChatWindow.java:189: error: duplicate case label
+            case CommObject.M_COMM_RES_WHOELSE:
+            ^
+Client_ProcThread.java:98: error: cannot find symbol
+                return CommObject.M_COMM_SEND_LOGIN;
+                                 ^
+  symbol:   variable M_COMM_SEND_LOGIN
+  location: class CommObject
+Client_ProcThread.java:144: error: constructor CommObject in class CommObject cannot be applied to given types;
+                        new CommObject (
+                        ^
+  required: CommObjectType,String,String
+  found: int,String,String
+  reason: actual argument int cannot be converted to CommObjectType by method invocation conversion
+Server.java:62: error: cannot find symbol
+                        Server_Command.M_CMD_INCOMING_CONN,
+                                      ^
+  symbol:   variable M_CMD_INCOMING_CONN
+  location: class Server_Command
+Server_ProcThread.java:137: error: no suitable method found for toString(Server_CmdType)
+            System.out.println ("Incoming MSG - " + Integer.toString (sCmd.getServCmd ()));
+                                                           ^
+    method Integer.toString() is not applicable
+      (actual and formal argument lists differ in length)
+    method Integer.toString(int) is not applicable
+      (actual argument Server_CmdType cannot be converted to int by method invocation conversion)
+    method Integer.toString(int,int) is not applicable
+      (actual and formal argument lists differ in length)
+    method Object.toString() is not applicable
+      (actual and formal argument lists differ in length)
+Server_ProcThread.java:142: error: an enum switch case label must be the unqualified name of an enumeration constant
+                case Server_Command.M_CMD_INCOMING_CONN: {
+                                   ^
+Server_ProcThread.java:159: error: an enum switch case label must be the unqualified name of an enumeration constant
+                case Server_Command.M_CMD_SEND_STRING: {
+                                   ^
+Server_ProcThread.java:159: error: duplicate case label
+                case Server_Command.M_CMD_SEND_STRING: {
+                ^
+Server_ProcThread.java:171: error: cannot find symbol
+                                        CommObject.M_COMM_SEND_STRING,
+                                                  ^
+  symbol:   variable M_COMM_SEND_STRING
+  location: class CommObject
+Server_ProcThread.java:189: error: an enum switch case label must be the unqualified name of an enumeration constant
+                case Server_Command.M_CMD_SEND_COMM_OBJ: {
+                                   ^
+Server_ProcThread.java:189: error: duplicate case label
+                case Server_Command.M_CMD_SEND_COMM_OBJ: {
+                ^
+Server_ProcThread.java:202: error: an enum switch case label must be the unqualified name of an enumeration constant
+                case Server_Command.M_CMD_RESP_WHOELSE: {
+                                   ^
+Server_ProcThread.java:202: error: duplicate case label
+                case Server_Command.M_CMD_RESP_WHOELSE: {
+                ^
+Server_ClientThread.java:43: error: cannot find symbol
+                "Incoming login request: " + co.getString () +
+                                               ^
+  symbol:   method getString()
+  location: variable co of type CommObject
+Server_ClientThread.java:44: error: cannot find symbol
+                ":" + co.getSubString ());
+                        ^
+  symbol:   method getSubString()
+  location: variable co of type CommObject
+Server_ClientThread.java:49: error: cannot find symbol
+                    co.getString (),
+                      ^
+  symbol:   method getString()
+  location: variable co of type CommObject
+Server_ClientThread.java:50: error: cannot find symbol
+                    co.getSubString ());
+                      ^
+  symbol:   method getSubString()
+  location: variable co of type CommObject
+Server_ClientThread.java:57: error: cannot find symbol
+                    CommObject nco = new CommObject (M_COMM_RES_LOGIN_FAIL, null, null);
+                                                     ^
+  symbol:   variable M_COMM_RES_LOGIN_FAIL
+  location: class Server_ClientThread
+Server_ClientThread.java:58: error: cannot find symbol
+                    Server_Command sc = new Server_Command (M_CMD_RESP_LOGIN_FAIL, m_cid, nco);
+                                                            ^
+  symbol:   variable M_CMD_RESP_LOGIN_FAIL
+  location: class Server_ClientThread
+Server_ClientThread.java:69: error: cannot find symbol
+                CommObject nco = new CommObject (M_COMM_RES_LOGIN_OK, null, null);
+                                                 ^
+  symbol:   variable M_COMM_RES_LOGIN_OK
+  location: class Server_ClientThread
+Server_ClientThread.java:70: error: cannot find symbol
+                Server_Command sc = new Server_Command (M_CMD_RESP_LOGIN_FAIL, m_cid, nco);
+                                                        ^
+  symbol:   variable M_CMD_RESP_LOGIN_FAIL
+  location: class Server_ClientThread
+Server_ClientThread.java:80: error: cannot find symbol
+        Server_Command sc = new Server_Command (Server_Command.M_CMD_SEND_WHOELSE, m_cid, null);
+                                                              ^
+  symbol:   variable M_CMD_SEND_WHOELSE
+  location: class Server_Command
+Server_ClientThread.java:109: error: an enum switch case label must be the unqualified name of an enumeration constant
+                        case CommObject.M_COMM_SEND_LOGIN:
+                                       ^
+Server_ClientThread.java:113: error: an enum switch case label must be the unqualified name of an enumeration constant
+                        case CommObject.M_COMM_SEND_WHOELSE:
+                                       ^
+Server_ClientThread.java:113: error: duplicate case label
+                        case CommObject.M_COMM_SEND_WHOELSE:
+                        ^
+Server_Command_NewConn.java:11: error: constructor Server_Command in class Server_Command cannot be applied to given types;
+        super (cmd, 0, null);
+        ^
+  required: Server_CmdType,int,CommObject
+  found: int,int,<null>
+  reason: actual argument int cannot be converted to Server_CmdType by method invocation conversion
+Server_Command_NewConn.java:15: error: getServCmd() in Server_Command_NewConn cannot override getServCmd() in Server_Command
+    int getServCmd () {
+        ^
+  return type int is not compatible with Server_CmdType
+Server_Command_NewConn.java:16: error: incompatible types
+        return m_cmd;
+               ^
+  required: int
+  found:    Server_CmdType
+Server_Command_SendString.java:22: error: cannot find symbol
+        super (Server_Command.M_CMD_SEND_STRING, myCid, null);
+                             ^
+  symbol:   variable M_CMD_SEND_STRING
+  location: class Server_Command
+37 errors

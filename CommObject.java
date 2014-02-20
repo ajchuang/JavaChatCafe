@@ -4,27 +4,15 @@ import java.util.*;
 // @lfred: The object sends to and from SERVER and CLIENT.
 class CommObject implements Serializable {
 
-    public static final int M_COMM_SEND_STRING    = 0;
-    public static final int M_COMM_SEND_COMMAND   = 1;
     
-    public static final int M_COMM_SEND_LOGIN     = 2;
-    public static final int M_COMM_RES_LOGIN_OK   = 3;
-    public static final int M_COMM_RES_LOGIN_FAIL = 4;
-    
-    public static final int M_COMM_SEND_WHOELSE   = 5;
-    public static final int M_COMM_RES_WHOELSE    = 6;
-    
-    public static final int M_COMM_SEND_MESSAGE   = 7;
-    public static final int M_COMM_SEND_BROADCAST = 8 ;
-
-    int m_opCode;
+    CommObjectType m_opCode;
     
     Vector<String> m_strVec;
     String m_str;
     String m_subStr;
 
 
-    CommObject (int opCode, String str, String subStr) {
+    CommObject (CommObjectType opCode, String str, String subStr) {
         m_opCode = opCode;
         m_strVec = new Vector<String> ();
         
@@ -35,16 +23,12 @@ class CommObject implements Serializable {
             m_strVec.add (str);
     }
     
-    int getOpCode () { return m_opCode; }
+    CommObjectType getOpCode () { return m_opCode; }
+    
     int getNumOfStr () { return m_strVec.size (); }
     
-    String getString () {        
-        return getStringAt (0);  
-    }
-    
-    String getSubString () { 
-        
-        return getStringAt (1);  
+    void setStringAt (int idx, String str) {
+        m_strVec.add (idx, str);
     }
     
     String getStringAt (int idx) {
