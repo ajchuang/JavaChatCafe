@@ -9,9 +9,17 @@ public class Server_ProcThread implements Runnable {
     // CONST
     private static String M_CONST_USER_DB = new String ("user_pass.txt");
 
-    LinkedBlockingQueue<Server_Command> m_cmdQueue;
+    // @lfred: all user list
     Hashtable<String, String> m_userList;
     
+    
+    LinkedBlockingQueue<Server_Command> m_cmdQueue;
+    
+    // @lfred: Runtime user databases.
+    // @lfred: blocking thing need to check spec.
+    // Hashtable<String,  Time> m_blockingList;
+    
+    Hashtable<Integer, String> m_loginClients;
     Hashtable<Integer, Socket> m_clients;
     Hashtable<Integer, ObjectOutputStream> m_bos;
     
@@ -114,6 +122,37 @@ public class Server_ProcThread implements Runnable {
         m_clients.put (v, s);
         return true;
     }
+    
+    void handleNewConn (Server_Command sCmd) {
+        
+        if (sCmd instanceof Server_Command_NewConn) {
+            Server_Command_NewConn c = (Server_Command_NewConn)sCmd;
+            int id = genClientID ();
+            addClientSocket (c.getSocket (), id);
+
+                // @lfred: create new client thread,
+                Thread t = new Thread (new Server_ClientThread (c.getSocket (), id));
+                t.start ();
+            } else {
+                System.out.println ("!!! incorrect msg @ M_CMD_INCOMING_CONN !!!");
+            }
+        } else {
+            System.out.println ("!!! BUG: Bad msg @ M_CMD_INCOMING_CONN !!!");
+        }
+    }
+    
+    void handleSendCommObj (Server_Command sCmd) {
+                            
+        System.out.println ("Server_Command.M_CMD_SEND_COMM_OBJ");
+
+        try {
+            ObjectOutputStream out = m_bos.get (sCmd.getMyCid ());
+            out.writeObject (sCmd.getCommObj ());
+        } catch (Exception e) {
+            System.out.println ("Exception: Server_Command.M_CMD_SEND_COMM_OBJ");
+            e.printStackTrace ();
+        }    
+    }
 
     public void run () {
 
@@ -139,67 +178,15 @@ public class Server_ProcThread implements Runnable {
             switch (sCmd.getServCmd ()) {
 
                 // @lfred: To register the user to the main thread
-                case Server_Command.M_CMD_INCOMING_CONN: {
-                
-                    if (sCmd instanceof Server_Command_NewConn) {
-                        Server_Command_NewConn c = (Server_Command_NewConn)sCmd;
-                        int id = genClientID ();
-                        addClientSocket (c.getSocket (), id);
-
-                        // @lfred: create new client thread,
-                        Thread t = new Thread (new Server_ClientThread (c.getSocket (), id));
-                        t.start ();
-                    } else {
-                        System.out.println ("!!! incorrect msg @ M_CMD_INCOMING_CONN !!!");
-                    }
-                }
+                case M_CMD_INCOMING_CONN:
+                    handleNewConn (sCmd);
                 break;
 
-                // @lfred: send "string" string - testing purpose
-                case Server_Command.M_CMD_SEND_STRING: {
-
-                    if (sCmd instanceof Server_Command_SendString) {
-                    
-                        try {
-                            Server_Command_SendString m = (Server_Command_SendString) sCmd;
-                            System.out.println ("SEND MSG: " + m.getMsg ());
-
-                            if (m.getMsgType () == Server_Command_SendString.M_TYPE_SINGLE) {
-                                ObjectOutputStream out = m_bos.get (m.getToCid ());
-                                out.writeObject (
-                                    new CommObject (
-                                        CommObject.M_COMM_SEND_STRING,
-                                        m.getMsg(),
-                                        null));
-                                        
-                                out.flush();
-                            } else {
-                                // we only handle the single and non-boxed NOW
-                                System.out.println ("@@@ To Implement @@@");
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace ();
-                        }
-                    } else {
-                        System.out.println ("!!! incorrect msg @ M_CMD_SEND_STRING !!!");
-                    }
-                }
-                break;
-
-                case Server_Command.M_CMD_SEND_COMM_OBJ: {
-                    System.out.println ("Server_Command.M_CMD_SEND_COMM_OBJ");
-
-                    try {
-                        ObjectOutputStream out = m_bos.get (sCmd.getMyCid ());
-                        out.writeObject (sCmd.getCommObj ());
-                    } catch (Exception e) {
-                        System.out.println ("Exception: Server_Command.M_CMD_SEND_COMM_OBJ");
-                        e.printStackTrace ();
-                    }
-                }
+                case M_CMD_SEND_COMM_OBJ:
+                    handleSendCommObj (sCmd);
                 break;
                 
-                case Server_Command.M_CMD_RESP_WHOELSE: {
+                case M_CMD_RESP_WHOELSE: {
                     
                 }
                 break;

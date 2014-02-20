@@ -59,7 +59,7 @@ public class Server {
                 // @lfred: push the new connection object
                 Server_ProcThread.getServProcThread ().enqueueCmd (
                     new Server_Command_NewConn (
-                        Server_Command.M_CMD_INCOMING_CONN,
+                        M_CMD_INCOMING_CONN,
                         sc));
 
                 System.out.println (
