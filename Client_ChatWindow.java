@@ -179,11 +179,15 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         switch (cObj.getOpCode ()) {
             
             case CommObject.M_COMM_SEND_MESSAGE:
-                // update UI
+                // update UI: when somebody sends a message to you.
             break;
             
             case CommObject.M_COMM_SEND_BROADCAST:
-                // update UI
+                // update UI: when somebody sends a broadcast
+            break;
+            
+            case CommObject.M_COMM_RES_WHOELSE:
+                // receive the response of 'whoelse'
             break;
         }
     }

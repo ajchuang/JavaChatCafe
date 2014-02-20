@@ -85,7 +85,7 @@ public class Server_ProcThread implements Runnable {
 
         return res;
     }
-
+    
     public void enqueueCmd (Server_Command cmd) {
         try {
             m_cmdQueue.put (cmd);
@@ -135,6 +135,7 @@ public class Server_ProcThread implements Runnable {
             }
 
             System.out.println ("Incoming MSG - " + Integer.toString (sCmd.getServCmd ()));
+            
             switch (sCmd.getServCmd ()) {
 
                 // @lfred: To register the user to the main thread
@@ -195,6 +196,11 @@ public class Server_ProcThread implements Runnable {
                         System.out.println ("Exception: Server_Command.M_CMD_SEND_COMM_OBJ");
                         e.printStackTrace ();
                     }
+                }
+                break;
+                
+                case Server_Command.M_CMD_SEND_WHOELSE: {
+                    
                 }
                 break;
                 

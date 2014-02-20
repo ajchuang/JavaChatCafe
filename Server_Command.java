@@ -4,6 +4,7 @@ public class Server_Command {
     public static final int M_CMD_INCOMING_CONN = 0;
     public static final int M_CMD_SEND_COMM_OBJ = 1;
     public static final int M_CMD_SEND_STRING   = 2;
+    public static final int M_CMD_SEND_WHOELSE  = 3;
 
     // protected
     protected int   m_cmd;

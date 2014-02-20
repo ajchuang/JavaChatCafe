@@ -15,20 +15,47 @@ class CommObject implements Serializable {
     public static final int M_COMM_RES_WHOELSE    = 6;
     
     public static final int M_COMM_SEND_MESSAGE   = 7;
-    public static final int M_COMM_SEND_BROADCAST = 8;
+    public static final int M_COMM_SEND_BROADCAST = 8 ;
 
     int m_opCode;
+    
+    Vector<String> m_strVec;
     String m_str;
     String m_subStr;
 
 
     CommObject (int opCode, String str, String subStr) {
         m_opCode = opCode;
-        m_str = str;
-        m_subStr = subStr;
+        m_strVec = new Vector<String> ();
+        
+        if (str != null)
+            m_strVec.add (str);
+        
+        if (subStr != null)
+            m_strVec.add (str);
     }
     
     int getOpCode () { return m_opCode; }
-    String getString () { return m_str; }
-    String getSubString () { return m_subStr; }
+    int getNumOfStr () { return m_strVec.size (); }
+    
+    String getString () {        
+        return getStringAt (0);  
+    }
+    
+    String getSubString () { 
+        
+        return getStringAt (1);  
+    }
+    
+    String getStringAt (int idx) {
+        
+        String s = null;
+        
+        try { s = m_strVec.elementAt (idx); } 
+        catch (Exception e) {
+            System.out.println ("!!! You got no such string !!!");
+        }
+        
+        return s;
+    }
 }
