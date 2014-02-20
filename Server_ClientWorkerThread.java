@@ -16,15 +16,39 @@ public class Server_ClientWorkerThread implements Runnable {
         m_cmdQueue = new LinkedBlockingQueue<Server_Command> ();
     }
     
-    public void run () {
+    public void enqueueCmd (Server_Command sCmd) {
     
+        try {
+            m_cmdQueue.put (sCmd);
+        } catch (Exception e) {
+            Server.logBug ("enqueueCmd: Exception - " + e);
+            e.printStackTrace ();
+        }
+    }
+    
+    // @lfred: tell the client that Auth passed.
+    void handleAuthOk (Server_Command sCmd) {
+    }
+    
+    // @lfred: tell the client that Auth failed.
+    void handleAuthFail (Server_Command sCmd) {
+    }
+
+    public void run () {
+        
+        // @lfred: create corresponding reader thread.
+        Server_ClientReaderThread scr = new Server_ClientReaderThread (m_socket, m_userId);
+        scr.start ();
+    
+        // @lfred: enter the loop to process the commands sent from server main thread.
         while (true) {
+            
             Server_Command sCmd;
 
             try {
                 sCmd = m_cmdQueue.take ();
             } catch (Exception e) {
-                System.out.println ("Dequeue Exception - " + e);
+                Server.logBug ("Dequeue Exception - " + e);
                 e.printStackTrace ();
                 continue;
             }
@@ -32,7 +56,13 @@ public class Server_ClientWorkerThread implements Runnable {
             System.out.println ("Incoming command @ client worker.");
             
             switch (sCmd.getServCmd ()) {
+                case M_SERV_CMD_RESP_AUTH_OK:
+                    handleAuthOk (sCmd);
+                break;
                 
+                case M_SERV_CMD_RESP_AUTH_FAIL:
+                    handleAuthFail (sCmd);
+                break;
             }
             
         } // while (true)

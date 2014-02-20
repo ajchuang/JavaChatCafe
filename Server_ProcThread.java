@@ -8,6 +8,7 @@ public class Server_ProcThread implements Runnable {
 
     // CONST
     private static String M_CONST_USER_DB = new String ("user_pass.txt");
+    private static int M_MAX_LOGIN_TRIES = 3;
 
     // @lfred: all user list
     Hashtable<String, String> m_userList;
@@ -22,6 +23,7 @@ public class Server_ProcThread implements Runnable {
     Hashtable<Integer, String> m_loginClients;
     Hashtable<Integer, Socket> m_clients;
     Hashtable<Integer, ObjectOutputStream> m_bos;
+    Hashtable<Integer, Server_ClientWorkerThread> m_clntThreadPool;
     
     // static
     static Server_ProcThread s_tProc = null;
@@ -44,6 +46,7 @@ public class Server_ProcThread implements Runnable {
         m_userList = new Hashtable<String, String> ();
         m_clients  = new Hashtable<Integer, Socket> ();
         m_bos      = new Hashtable<Integer, ObjectOutputStream> ();
+        m_clntThreadPool = new Hashtable<Integer, Server_ClientWorkerThread> ();
     }
 
     private boolean loadUserFile () {
@@ -73,23 +76,22 @@ public class Server_ProcThread implements Runnable {
     }
     
     // @lfred: used to authenticate users
-    public boolean authenticateUser (String name, String pwd) {
+    boolean authenticateUser (String name, String pwd) {
 
         boolean res = false;
 
         //  Check blacklist
         //  TODO:
         //  Check the user list
-        synchronized (m_userList) {
-            if (m_userList.containsKey (name) == true) {
-                String k = (String) m_userList.get (name);
-                res = k.equals (pwd);
-            }
+        
+        if (m_userList.containsKey (name) == true) {    
+            String k = (String) m_userList.get (name);
+            res = k.equals (pwd);
         }
-
+        
         // Debug message
         if (res == true)
-            System.out.println ("User: " + name + " authenticated");
+            Server.log ("User: " + name + " authenticated");
 
         return res;
     }
@@ -126,18 +128,21 @@ public class Server_ProcThread implements Runnable {
     void handleNewConn (Server_Command sCmd) {
         
         if (sCmd instanceof Server_Command_NewConn) {
+            
             Server_Command_NewConn c = (Server_Command_NewConn)sCmd;
             int id = genClientID ();
             addClientSocket (c.getSocket (), id);
 
-                // @lfred: create new client thread,
-                Thread t = new Thread (new Server_ClientThread (c.getSocket (), id));
-                t.start ();
-            } else {
-                System.out.println ("!!! incorrect msg @ M_CMD_INCOMING_CONN !!!");
-            }
+            // @lfred: create new client thread,
+            Server_ClientWorkerThread cwt = new Server_ClientWorkerThread (c.getSocket (), id);
+            m_clntThreadPool.put (id, cwt);
+                
+            // start the user thread.
+            Thread t = new Thread (cwt);
+            t.start ();
+                
         } else {
-            System.out.println ("!!! BUG: Bad msg @ M_CMD_INCOMING_CONN !!!");
+            Server.logBug ("incorrect msg @ M_CMD_INCOMING_CONN");
         }
     }
     
@@ -152,6 +157,40 @@ public class Server_ProcThread implements Runnable {
             System.out.println ("Exception: Server_Command.M_CMD_SEND_COMM_OBJ");
             e.printStackTrace ();
         }    
+    }
+    
+    // @lfred: handle the authentication request - also update server side info
+    void handleAuthReq (Server_Command sCmd) {
+        
+        if (sCmd instanceof Server_Command_AuthReq == false) {
+            Server.logBug ("Incorrect Command Type");
+            return;
+        }
+        
+        Server_Command_AuthReq scaq = (Server_Command_AuthReq) sCmd;
+        boolean res = authenticateUser (scaq.getUserName (), scaq.getPasswd ());
+        
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (sCmd.getMyCid ());
+        
+        if (cwt != null) {
+        
+            if (res == true) {
+                Server_Command sc = new Server_Command (M_SERV_CMD_RESP_AUTH_OK, sCmd.getMyCid ());
+                cwt.enqueueCmd (sc);
+                
+                // TODO: we should do the accounting here (for login users)
+                m_loginClients.add (sCmd.getMyCid (), scaq.getUserName ());
+                
+            } else {
+                Server_Command sc = new Server_Command (M_SERV_CMD_RESP_AUTH_FAIL, sCmd.getMyCid ());
+                cwt.enqueueCmd (sc);
+                
+                // TODO: we should do the accounting here (for failed logins)
+            }
+        } else {
+            // @lfred: user diconnects before authentication.
+            return;
+        }
     }
 
     public void run () {
@@ -178,11 +217,14 @@ public class Server_ProcThread implements Runnable {
             switch (sCmd.getServCmd ()) {
 
                 // @lfred: To register the user to the main thread
-                case M_CMD_INCOMING_CONN:
+                case M_SERV_CMD_INCOMING_CONN:
                     handleNewConn (sCmd);
                 break;
+                
+                case M_SERV_CMD_REQ_AUTH:
+                break;
 
-                case M_CMD_SEND_COMM_OBJ:
+                case M_SERV_CMD_SEND_COMM_OBJ:
                     handleSendCommObj (sCmd);
                 break;
                 

@@ -19,6 +19,14 @@ public class Server {
     public void setProcThread (Server_ProcThread procThread) {
         m_procThread = procThread;
     }
+    
+    public static void logBug (String s) {
+        System.out.println ("!!! Bug: " + s + " !!!");
+    }
+    
+    public static void log (String s) {
+        System.out.println ("    Info: " + s);
+    }
 
     public static void main (String args[]) throws Exception {
 
