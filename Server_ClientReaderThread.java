@@ -35,20 +35,16 @@ public class Server_ClientReaderThread implements Runnable {
             "Incoming login request: " + name + ":" + pass);
             
         // @lfred: we should send the server command to the main server processor
-        Server_Command_Auth sca = 
-            new Server_Command_Auth (
-                M_SERV_CMD_REQ_AUTH, 
-                m_cid, 
-                name, 
-                pass);
+        Server_Command_AuthReq sca = 
+            new Server_Command_AuthReq (m_cid, name, pass);
                 
         Server_ProcThread.getServProcThread ().enqueueCmd (sca);
     }
     
     void handleWhoelse (CommObject co) {
-        System.out.println ("handleWhoelse");
-        Server_Command sc = new Server_Command (M_SERV_CMD_RESP_WHOELSE, m_cid, null);
-        Server_ProcThread.getServProcThread().enqueueCmd (sc);    
+        Server.log ("handleWhoelse");
+        Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_RESP_WHOELSE, m_cid);
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
 
     public void run () {
@@ -65,11 +61,11 @@ public class Server_ClientReaderThread implements Runnable {
 
                     switch (co.getOpCode ()) {
                     
-                        case M_COMM_SEND_LOGIN:
+                        case E_COMM_REQ_LOGIN:
                             handleLogin (co);
                         break;
                         
-                        case M_COMM_SEND_WHOELSE:
+                        case E_COMM_REQ_WHOELSE:
                             handleWhoelse (co);
                         break;
                     }

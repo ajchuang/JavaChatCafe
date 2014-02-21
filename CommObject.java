@@ -3,7 +3,7 @@ import java.util.*;
 
 // @lfred: The object sends to and from SERVER and CLIENT.
 class CommObject implements Serializable {
-
+        
     CommObjectType m_opCode;
     Vector<String> m_strVec;
     

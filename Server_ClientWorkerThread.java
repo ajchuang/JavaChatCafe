@@ -9,16 +9,23 @@ public class Server_ClientWorkerThread implements Runnable {
     LinkedBlockingQueue<Server_Command> m_cmdQueue;
     Socket m_socket;
     ObjectOutputStream m_oStream;
-    Server_ClientState m_state;
+    //Server_ClientState m_state;
 
     int m_userId;
     
     public Server_ClientWorkerThread (int userId, Socket skt) {
         m_socket = skt;
-        m_oStream = new ObjectOutputStream (m_socket.getOutputStream ());
+        
         m_userId = userId;
         m_cmdQueue = new LinkedBlockingQueue<Server_Command> ();
-        m_state = M_CLIENT_STATE_CONNECTED;
+        
+        try {
+            m_oStream = new ObjectOutputStream (m_socket.getOutputStream ());
+        } catch (Exception e) {
+            Server.logBug ("Should not happen");
+            e.printStackTrace ();
+        }
+        //m_state = M_CLIENT_STATE_CONNECTED;
     }
     
     public void enqueueCmd (Server_Command sCmd) {
@@ -35,7 +42,7 @@ public class Server_ClientWorkerThread implements Runnable {
     void handleAuthOk (Server_Command sCmd) {
         
         try {
-            CommObject co = new CommObject (E_COMM_RESP_LOGIN_OK);
+            CommObject co = new CommObject (CommObjectType.E_COMM_RESP_LOGIN_OK);
             m_oStream.writeObject (co);  
         } catch (Exception e) {
             Server.logBug ("failed to write object");
@@ -47,7 +54,7 @@ public class Server_ClientWorkerThread implements Runnable {
     void handleAuthFail (Server_Command sCmd) {
         
         try {
-            CommObject co = new CommObject (E_COMM_RESP_LOGIN_FAIL);
+            CommObject co = new CommObject (CommObjectType.E_COMM_RESP_LOGIN_FAIL);
             m_oStream.writeObject (co);  
         } catch (Exception e) {
             Server.logBug ("failed to write object");
@@ -59,7 +66,8 @@ public class Server_ClientWorkerThread implements Runnable {
         
         // @lfred: create corresponding reader thread.
         Server_ClientReaderThread scr = new Server_ClientReaderThread (m_socket, m_userId);
-        scr.start ();
+        Thread x = new Thread (scr);
+        x.start ();
     
         // @lfred: enter the loop to process the commands sent from server main thread.
         while (true) {

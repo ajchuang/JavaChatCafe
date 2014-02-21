@@ -1,5 +1,4 @@
-public enum Server_CmdType {
-
+ public enum Server_CmdType {
     M_SERV_CMD_INCOMING_CONN,
     M_SERV_CMD_SEND_COMM_OBJ,
     
@@ -8,5 +7,5 @@ public enum Server_CmdType {
     M_SERV_CMD_RESP_AUTH_FAIL,
     
     M_SERV_CMD_RESP_WHOELSE,
-    M_SERV_CMD_RESP_WHOELSELASTHR,
-};
+    M_SERV_CMD_RESP_WHOELSELASTHR
+}

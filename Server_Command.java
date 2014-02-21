@@ -1,5 +1,5 @@
 public class Server_Command {
-
+    
     // protected
     protected Server_CmdType m_cmd;
     protected int   m_cid;

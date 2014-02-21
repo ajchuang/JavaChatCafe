@@ -1,18 +1,16 @@
 import java.net.*;
-import java.io.*;
-import java.util.*;
 
 public class Server_Command_NewConn extends Server_Command {
 
     // protected
     Socket m_skt;
 
-    Server_Command_NewConn (int cmd, Socket skt) {
-        super (cmd, 0, null);
+    Server_Command_NewConn (Socket skt) {
+        super (Server_CmdType.M_SERV_CMD_INCOMING_CONN, 0);
         m_skt = skt;
     }
 
-    int getServCmd () {
+    Server_CmdType getServCmd () {
         return m_cmd;
     }
     

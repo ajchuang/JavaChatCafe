@@ -130,7 +130,7 @@ public class Server_ProcThread implements Runnable {
             addClientSocket (c.getSocket (), id);
 
             // @lfred: create new client thread,
-            Server_ClientWorkerThread cwt = new Server_ClientWorkerThread (c.getSocket (), id);
+            Server_ClientWorkerThread cwt = new Server_ClientWorkerThread (id, c.getSocket ());
             m_clntThreadPool.put (id, cwt);
                 
             // start the user thread.
@@ -157,19 +157,26 @@ public class Server_ProcThread implements Runnable {
         
         if (cwt != null) {
         
-            if (res == true) {
-                Server_Command sc = new Server_Command (M_SERV_CMD_RESP_AUTH_OK, sCmd.getMyCid ());
+            if (res == true) {                          
+                Server_Command sc = 
+                    new Server_Command (
+                        Server_CmdType.M_SERV_CMD_RESP_AUTH_OK, 
+                        sCmd.getMyCid ());
+                
                 cwt.enqueueCmd (sc);
                 
                 // TODO: we should do the accounting here (for login users)
-                m_loginClients.add (sCmd.getMyCid (), scaq.getUserName ());
+                m_loginClients.put (sCmd.getMyCid (), scaq.getUserName ());
                 
                 // add to login list
                 m_loginRecord.remove (scaq.getUserName ()); 
-                m_loginRecord.add (scaq.getUserName (), new Date ());
+                m_loginRecord.put (scaq.getUserName (), new Date ());
                 
             } else {
-                Server_Command sc = new Server_Command (M_SERV_CMD_RESP_AUTH_FAIL, sCmd.getMyCid ());
+                Server_Command sc = 
+                    new Server_Command (
+                        Server_CmdType.M_SERV_CMD_RESP_AUTH_FAIL, 
+                        sCmd.getMyCid ());
                 cwt.enqueueCmd (sc);
                 
                 // TODO: we should do the accounting here (for failed logins)
@@ -199,7 +206,7 @@ public class Server_ProcThread implements Runnable {
                 continue;
             }
 
-            System.out.println ("Incoming MSG - " + Integer.toString (sCmd.getServCmd ()));
+            Server.log ("Incoming Server_Command");
             
             switch (sCmd.getServCmd ()) {
 
@@ -211,13 +218,10 @@ public class Server_ProcThread implements Runnable {
                 case M_SERV_CMD_REQ_AUTH:
                 break;
 
-                case M_SERV_CMD_SEND_COMM_OBJ:
-                    handleSendCommObj (sCmd);
+                case M_SERV_CMD_SEND_COMM_OBJ:                    
                 break;
                 
-                case M_CMD_RESP_WHOELSE: {
-                    
-                }
+                case M_SERV_CMD_RESP_WHOELSE:                     
                 break;
                 
                 default:

@@ -90,30 +90,7 @@ public class Client_ProcThread implements Runnable {
     public void setLoginWindow (Client_LoginWindow clw) {
         m_loginWindow = clw;
     }
-    
-    protected int translateCCtoCO (int CC) {
-    
-        switch (CC) {
-            case Client_Command.M_CMD_TYPE_LOGIN:
-                return CommObject.M_COMM_SEND_LOGIN;
-
-
-            // @lfred: TODO - to fill
-            case Client_Command.M_CMD_TYPE_SEND_WHOELSE:
-                return 0;
-            case Client_Command.M_CMD_TYPE_SEND_WHOLASTH:
-                return 0;
-            case Client_Command.M_CMD_TYPE_SEND_BROADCAST:
-                return 0;
-            case Client_Command.M_CMD_TYPE_SEND_MESSAGE:
-                return 0;
-            case Client_Command.M_CMD_TYPE_SEND_LOGOUT:
-                return 0;
-        }
-
-        return 0;
-    }
-
+        
     public void run () {
         System.out.println ("Client_ProcThread starts");
         
@@ -139,19 +116,7 @@ public class Client_ProcThread implements Runnable {
                 break;
 
                 default:
-                    int coCmd = translateCCtoCO (sCmd.getCmdType ());
-                    CommObject co =
-                        new CommObject (
-                            coCmd,
-                            sCmd.getString (),
-                            sCmd.getSubString ());
-
-                    try {
-                        m_outputStream.writeObject (co);
-                    } catch (Exception e) {
-                        // TODO
-                        System.out.println ("Serious Exception - to exit");
-                    }
+                     // @lfred: nothing so far
                 break;
             }
         }

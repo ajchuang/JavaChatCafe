@@ -66,10 +66,8 @@ public class Server {
 
                 // @lfred: push the new connection object
                 Server_ProcThread.getServProcThread ().enqueueCmd (
-                    new Server_Command_NewConn (
-                        M_CMD_INCOMING_CONN,
-                        sc));
-
+                    new Server_Command_NewConn (sc));
+                                                  
                 Server.log (
                     "### a new client from " +
                     sc.getInetAddress().toString() + ":" +
