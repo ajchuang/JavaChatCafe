@@ -3,18 +3,18 @@ public class Server_Command_AuthReq extends Server_Command {
     String m_userName;
     String m_passwd;
 
-    public Server_Command_Auth (Server_CmdType cmd, int cid, String user, String, pwd) {
+    public Server_Command_AuthReq (Server_CmdType cmd, int cid, String user, String pwd) {
         super (cmd, cid);
         m_userName = user;
         m_passwd = pwd;
     }
     
-    public getUserName () {
+    public String getUserName () {
         return m_userName;
     }
 
 
-    public getPasswd () {
+    public String getPasswd () {
         return m_passwd;
     }
 }

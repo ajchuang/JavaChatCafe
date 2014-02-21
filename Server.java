@@ -34,15 +34,15 @@ public class Server {
 
         // argument check
         if (args.length != 1) {
-            System.out.println ("Error: Incorrect Argument Count, " + args.length);
+            Server.log ("Error: Incorrect Argument Count, " + args.length);
             return;
         } else {
             try {
                 port = Integer.parseInt (args[0]);
-                System.out.println ("Using port: " + port);
+                Server.log ("Using port: " + port);
 
             } catch (Exception e) {
-                System.out.println ("Exception: " + e);
+                Server.log ("Exception: " + e);
                 e.printStackTrace ();
                 System.exit (0);
             }
@@ -62,7 +62,7 @@ public class Server {
 
             try {
                 Socket sc = skt.accept ();
-                System.out.println ("Server: incoming link");
+                Server.log ("Server: incoming link");
 
                 // @lfred: push the new connection object
                 Server_ProcThread.getServProcThread ().enqueueCmd (
@@ -70,7 +70,7 @@ public class Server {
                         M_CMD_INCOMING_CONN,
                         sc));
 
-                System.out.println (
+                Server.log (
                     "### a new client from " +
                     sc.getInetAddress().toString() + ":" +
                     Integer.toString (sc.getPort ()) +

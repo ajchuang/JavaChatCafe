@@ -11,8 +11,6 @@ public class Server_ClientReaderThread implements Runnable {
 
     // @lfred: user data
     ObjectInputStream m_inputStream;
-    Server_ClientState m_state;
-    
     int m_cid;    
     int m_loginCount;
 
@@ -22,8 +20,7 @@ public class Server_ClientReaderThread implements Runnable {
             m_clientSocket = s;
             m_inputStream = new ObjectInputStream (s.getInputStream ());
             m_cid = id;
-            m_state = M_CLIENT_STATE_CONNECTED;
-
+            
         } catch (Exception e) {
             System.out.println ();
         }
@@ -31,28 +28,21 @@ public class Server_ClientReaderThread implements Runnable {
     
     void handleLogin (CommObject co) {
         
-        if (m_state == SERV_CLNT_STATE_CONNECTED) {
+        String pass = co.getStringAt (1);
+        String name = co.getStringAt (0);
+        
+        System.out.println (
+            "Incoming login request: " + name + ":" + pass);
             
-            String name = co.getStringAt (0);
-            String pass = co.getStringAt (1);
-            
-            System.out.println (
-                "Incoming login request: " + name + ":" + pass);
+        // @lfred: we should send the server command to the main server processor
+        Server_Command_Auth sca = 
+            new Server_Command_Auth (
+                M_SERV_CMD_REQ_AUTH, 
+                m_cid, 
+                name, 
+                pass);
                 
-            // @lfred: we should send the server command to the main server processor
-            Server_Command_Auth sca = 
-                new Server_Command_Auth (
-                    M_SERV_CMD_REQ_AUTH, 
-                    m_cid, 
-                    name, 
-                    pass);
-                    
-            Server_ProcThread.getServProcThread ().enqueueCmd (sca);
-            m_state = SERV_CLNT_STATE_AUTHENTICATING;        
-
-        } else {
-            System.out.println ("!!! Bug: incorrect state. !!!");
-        }
+        Server_ProcThread.getServProcThread ().enqueueCmd (sca);
     }
     
     void handleWhoelse (CommObject co) {

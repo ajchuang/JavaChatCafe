@@ -30,17 +30,17 @@ public class Client {
                 }
 
                 CommObject co = (CommObject) o;
-                System.out.println (co.getString ());
+                System.out.println (co.getStringAt (0));
 
 
                 switch (co.getOpCode ()) {
                 
-                    case CommObject.M_COMM_RES_LOGIN_OK:
+                    case E_COMM_RESP_LOGIN_OK:
                         System.out.println ("Login - OK");
                         clw.reportLoginStatus (true);
                     break;
 
-                    case CommObject.M_COMM_RES_LOGIN_FAIL:
+                    case E_COMM_RESP_LOGIN_FAIL:
                         System.out.println ("Login - FAIL");
                         clw.reportLoginStatus (false);
                     break;
