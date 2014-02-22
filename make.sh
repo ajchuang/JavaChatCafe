@@ -1,3 +1,3 @@
 #!/bin/bash
 rm *.class
-javac *.java 1>log.txt
+javac *.java 2>log.txt

@@ -97,7 +97,6 @@ public class Server_ProcThread implements Runnable {
         // Debug message
         if (res == true) {
             Server.log ("User: " + name + " authenticated");
-            m_loginClients.put (cid, name);
         }
 
         return res;
@@ -152,8 +151,7 @@ public class Server_ProcThread implements Runnable {
         }
         
         Server_Command_AuthReq scaq = (Server_Command_AuthReq) sCmd;
-        boolean res = authenticateUser (sCmd.getMyCid (), scaq.getUserName (), scaq.getPasswd ());
-        
+        boolean res = authenticateUser (sCmd.getMyCid (), scaq.getUserName (), scaq.getPasswd ());        
         Server_ClientWorkerThread cwt = m_clntThreadPool.get (sCmd.getMyCid ());
         
         if (cwt != null) {
@@ -187,6 +185,68 @@ public class Server_ProcThread implements Runnable {
             return;
         }
     }
+    
+    void handleWhoelseRsp (Server_Command sCmd) {
+        
+        Server.log ("handleWhoelseRsp");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type");
+            return;
+        }
+        
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec)sCmd; 
+        Server_ClientWorkerThread wt = m_clntThreadPool.get (sCmd_v.getMyCid ());
+        
+        if (wt == null)
+            return;
+        
+        Enumeration<String> e = m_loginClients.elements ();
+        
+        for (; e.hasMoreElements (); ) {
+            String u = e.nextElement ();
+            Server.log (u);
+            sCmd_v.pushString (u);
+        }
+        
+        wt.enqueueCmd (sCmd_v);
+    }
+    
+    void handleBroadcastRsp (Server_Command sCmd) {
+        
+        Server.log ("handleBroadcastRsp");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleBroadcastRsp");
+            return;
+        }
+     
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        Server_Command_StrVec sCmd_v2 = 
+            new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_RESP_BROADCAST, sCmd.getMyCid ());
+            
+        String usr = m_loginClients.get (sCmd_v.getMyCid ());
+        String msg = sCmd_v.getStringAt (0);
+        
+        sCmd_v2.pushString (usr);
+        sCmd_v2.pushString (msg);
+        
+        Enumeration <Server_ClientWorkerThread> wtPool = m_clntThreadPool.elements ();
+        for (; wtPool.hasMoreElements (); )
+            wtPool.nextElement ().enqueueCmd (sCmd_v2);
+    }
+    
+    void handleMsgInd (Server_Command sCmd) {
+        
+        Server.log ("handleMsgInd");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleMsgInd");
+            return;
+        }
+        
+        // TODO
+    } 
 
     public void run () {
 
@@ -223,7 +283,16 @@ public class Server_ProcThread implements Runnable {
                 case M_SERV_CMD_SEND_COMM_OBJ:                    
                 break;
                 
-                case M_SERV_CMD_RESP_WHOELSE:                     
+                case M_SERV_CMD_RESP_WHOELSE:      
+                    handleWhoelseRsp (sCmd);               
+                break;
+                
+                case M_SERV_CMD_RESP_BROADCAST:
+                    handleBroadcastRsp (sCmd);
+                break;
+                
+                case M_SERV_CMD_IND_MSG:
+                    handleMsgInd (sCmd);
                 break;
                 
                 default:

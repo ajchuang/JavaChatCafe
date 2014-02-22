@@ -10,7 +10,74 @@ public class Client {
     public static void log (String s) {
         System.out.println ("   C-Info: " + s);
     }
+    
+    void handleWhoelseRsp (CommObject co) {
+        
+        Client.log ("handleWhoelseRsp");
+        
+        Client_Command cCmd = new Client_Command (Client_CmdType.E_CMD_WHOELSE_RSP);
+        
+        for (int i=0; i<co.getNumOfStrings (); ++i) {
+            cCmd.pushString (co.getStringAt (i));
+        }
+        
+        Client_ProcThread.getProcThread ().enqueueCmd (cCmd);
+    }
+    
+    void handleWholasthrRsp (CommObject co) {
+        
+        Client.log ("handleWholasthrRsp");
+    }
+    
+    void handleBroadcastRsp (CommObject co) {
+        
+        Client.log ("handleBroadcastRsp");
+        
+        Client_Command cCmd = new Client_Command (Client_CmdType.E_CMD_BROADCAST_RSP);
+        cCmd.pushString (co.getStringAt (0));
+        cCmd.pushString (co.getStringAt (1));
+        Client_ProcThread.getProcThread ().enqueueCmd (cCmd);
+    }
+    
+    void handleMsgRsp (CommObject co) {
+        
+        Client.log ("handleMsgRsp");
+    }
+    
+    public void msgHandler (CommObject co, Client_LoginWindow clw) {
+        
+        switch (co.getOpCode ()) {
+                
+            case E_COMM_RESP_LOGIN_OK:
+                clw.reportLoginStatus (true);
+            break;
 
+            case E_COMM_RESP_LOGIN_FAIL:
+                clw.reportLoginStatus (false);
+            break;
+            
+            case E_COMM_RESP_WHOELSE:
+                handleWhoelseRsp (co);
+            break;
+        
+            case E_COMM_RESP_WHOLASTHR:
+                handleWholasthrRsp (co);
+            break;
+        
+            case E_COMM_RESP_BROADCAST:
+                handleBroadcastRsp (co);
+            break;
+        
+            case E_COMM_IND_MESSAGE:
+                handleMsgRsp (co);
+            break;
+            
+            default:
+                Client.log ("Unhandled msg: " + co.getOpCode ().name ());
+            break;
+        }
+    }
+    
     public static void main (String args[]) throws Exception {
 
         String ip;
@@ -35,6 +102,7 @@ public class Client {
 
         // @lfred: Before anything starts -
         //         we start the UI input thread and Proc thread
+        Client clnt = new Client ();
         Client_LoginWindow clw = new Client_LoginWindow ();
         Client_ProcThread pt = Client_ProcThread.initProcThread (ip, port);
         pt.setLoginWindow (clw);
@@ -46,35 +114,18 @@ public class Client {
 
         while (true) {
             try {
-
                 Object o = in.readObject ();
 
                 if (o instanceof CommObject == false) {
-                    System.out.println ("BUG: BAD COMM OBJECT");
-                    break;
+                    Client.logBug ("BUG: BAD COMM OBJECT");
+                    continue;
                 }
 
                 CommObject co = (CommObject) o;
-                System.out.println (co.getStringAt (0));
+                clnt.msgHandler (co, clw);
 
-
-                switch (co.getOpCode ()) {
-                
-                    case E_COMM_RESP_LOGIN_OK:
-                        System.out.println ("Login - OK");
-                        clw.reportLoginStatus (true);
-                    break;
-
-                    case E_COMM_RESP_LOGIN_FAIL:
-                        System.out.println ("Login - FAIL");
-                        clw.reportLoginStatus (false);
-                    break;
-                }
-
-                //System.out.println ("Prepare to read object done");
             } catch (ConnectException ce) {
-                System.out.println
-                    ("Connection refused - Please check server settings");
+                Client.logBug ("Connection refused - Please check server settings");
                 in.close ();
                 break;
             } catch (Exception e) {

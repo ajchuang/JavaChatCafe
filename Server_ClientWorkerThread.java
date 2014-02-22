@@ -38,28 +38,63 @@ public class Server_ClientWorkerThread implements Runnable {
         }
     }
     
+    void sendToClient (CommObject co) {
+        
+        try {
+            m_oStream.writeObject (co);
+            
+        } catch (Exception e) {
+            Server.logBug ("Failed to send CommObject");
+            e.printStackTrace ();
+            
+            // @lfred: TODO - send a CLNT_DOWN back to main thread.
+        }
+        
+        return;
+    }
+    
     // @lfred: tell the client that Auth passed.
     void handleAuthOk (Server_Command sCmd) {
         
-        try {
-            CommObject co = new CommObject (CommObjectType.E_COMM_RESP_LOGIN_OK);
-            m_oStream.writeObject (co);  
-        } catch (Exception e) {
-            Server.logBug ("failed to write object");
-            e.printStackTrace ();
-        }
+        CommObject co = new CommObject (CommObjectType.E_COMM_RESP_LOGIN_OK);
+        sendToClient (co);
     }
     
     // @lfred: tell the client that Auth failed.
     void handleAuthFail (Server_Command sCmd) {
         
-        try {
-            CommObject co = new CommObject (CommObjectType.E_COMM_RESP_LOGIN_FAIL);
-            m_oStream.writeObject (co);  
-        } catch (Exception e) {
-            Server.logBug ("failed to write object");
-            e.printStackTrace ();
+        CommObject co = new CommObject (CommObjectType.E_COMM_RESP_LOGIN_FAIL);
+        sendToClient (co);  
+    }
+    
+    void handleWhoelseRsp (Server_Command sCmd) {
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleWhoelseRsp");
+            return;
         }
+        
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        CommObject co = new CommObject (CommObjectType.E_COMM_RESP_WHOELSE);
+        
+        for (int i=0; i<sCmd_v.getStrCount () ; ++i)
+            co.pushString (sCmd_v.getStringAt (i));
+        
+        sendToClient (co);
+    }
+    
+    void handleBroadcastRsp (Server_Command sCmd) {
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleBroadcastRsp");
+            return;
+        } 
+        
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        CommObject co = new CommObject (CommObjectType.E_COMM_RESP_BROADCAST);
+        co.pushString (sCmd_v.getStringAt (0));
+        co.pushString (sCmd_v.getStringAt (1));        
+        sendToClient (co);
     }
 
     public void run () {
@@ -91,6 +126,14 @@ public class Server_ClientWorkerThread implements Runnable {
                 
                 case M_SERV_CMD_RESP_AUTH_FAIL:
                     handleAuthFail (sCmd);
+                break;
+                
+                case M_SERV_CMD_RESP_WHOELSE:
+                    handleWhoelseRsp (sCmd);
+                break;
+                
+                case M_SERV_CMD_RESP_BROADCAST:
+                    handleBroadcastRsp (sCmd);
                 break;
             }
             

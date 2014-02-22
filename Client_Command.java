@@ -21,7 +21,13 @@ public class Client_Command {
         return m_cmdType;
     }
     
+    // @lfred: should we do this ?
+    public Vector<String> getStringVector () {
+        return m_strVec;
+    }
+    
     public String getStringAt (int i) {
+        
         String r = null;
         
         try {

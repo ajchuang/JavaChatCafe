@@ -28,6 +28,10 @@ class CommObject implements Serializable {
         m_strVec.add (idx, str);
     }
     
+    int getNumOfStrings () {
+        return m_strVec.size ();
+    }
+    
     String getStringAt (int idx) {
         
         String s = null;

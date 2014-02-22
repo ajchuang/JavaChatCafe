@@ -6,6 +6,7 @@ import java.util.*;
 public class Client_ChatWindow extends JFrame implements ActionListener {
 
     // @lfred: well, again this is a singleton
+    final static String NEW_LINE = new String ("\n");
     static Client_ChatWindow mp_chatWin;
 
     // @lfred: UI components
@@ -180,9 +181,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             } else
                 Client.log ("Incorrect Command Format");
             
-            
-            // @lfred: clear the text anyway
-            
+            // @lfred: clear the text anyway            
             m_cmdText.setText (null);
             
         } else if (e.getSource () == m_logoutBtn) {
@@ -213,6 +212,39 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                 // receive the response of 'whoelse'
             break;
         }
+    }
+    
+    public void incomingMsg (String usr, String msg, boolean isBroadcast) {
+        
+        String output;
+        
+        if (isBroadcast)
+            output = usr + " is broadcasting" + ": " + msg + NEW_LINE;
+        else
+            output = usr + ": " + msg + NEW_LINE;
+            
+        m_chatBoard.append (output);
+    }
+    
+    public void incomingUsrList (Vector<String> vStr, boolean isLastHr) {
+        
+        String subStr = Integer.toString (vStr.size ()) + NEW_LINE;
+        
+        if (isLastHr == true)
+            m_chatBoard.append ("Total users last hour: " + subStr);
+        else
+            m_chatBoard.append ("Total active users: " + subStr);
+        
+        for (int i=0; i<vStr.size(); ++i)
+            m_chatBoard.append (vStr.elementAt (i) + NEW_LINE);
+    }
+    
+    public void displayBlockingInfo (String usr, boolean isBlocked) {
+        
+        if (isBlocked == true) 
+            m_chatBoard.append ("* System Info* You blocked " + usr + NEW_LINE);
+        else
+            m_chatBoard.append ("* System Info* You unblocked " + usr + NEW_LINE);
     }
 }
 

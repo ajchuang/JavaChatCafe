@@ -41,9 +41,48 @@ public class Server_ClientReaderThread implements Runnable {
         Server_ProcThread.getServProcThread ().enqueueCmd (sca);
     }
     
-    void handleWhoelse (CommObject co) {
+    void handleWhoelse (CommObject co) {        
         Server.log ("handleWhoelse");
-        Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_RESP_WHOELSE, m_cid);
+        
+        Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_RESP_WHOELSE, m_cid);
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
+    
+    void handleMsgReq (CommObject co) {
+        
+        String name = co.getStringAt (0);
+        String msg  = co.getStringAt (1);
+                        
+        Server.log ("handleMsgReq: " + name + ":" + msg);
+        
+        // @lfred: create server command
+        Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_IND_MSG, m_cid);
+        sc.pushString (name);
+        sc.pushString (msg);
+        
+        // enqueue to handle
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
+    
+    void handleBroadcast (CommObject co) {
+        
+        String msg = co.getStringAt (0);
+        
+        Server.log ("handleBroadcast: " + msg);
+        
+        // @lfred: create server command
+        Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_RESP_BROADCAST, m_cid);
+        sc.pushString (msg);
+        
+        // enqueue to handle
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
+    
+    void handleWhoLastHr (CommObject co) {
+        
+        Server.log ("handleWhoLastHr");
+        
+        Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_RESP_WHOELSELASTHR, m_cid);
         Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
 
@@ -68,9 +107,21 @@ public class Server_ClientReaderThread implements Runnable {
                         case E_COMM_REQ_WHOELSE:
                             handleWhoelse (co);
                         break;
+                        
+                        case E_COMM_RESP_WHOLASTHR:
+                            handleWhoLastHr (co);
+                        break;
+                        
+                        case E_COMM_REQ_MESSAGE:
+                            handleMsgReq (co);
+                        break;
+                        
+                        case E_COMM_REQ_BROADCAST:
+                            handleBroadcast (co);
+                        break;
                     }
                 } else {
-                    System.out.println ("!!! BUG: What are you sending ? !!!");
+                    Server.logBug ("What are you sending ?");
                 }
             }
         } catch (Exception e) {

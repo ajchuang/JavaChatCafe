@@ -25,6 +25,7 @@ public class Client_ProcThread implements Runnable {
 
     // @lfred: data members
     LinkedBlockingQueue<Client_Command> m_cmdQueue;
+    HashSet<String> m_blockedUsers;
     Socket m_socket;
     ObjectOutputStream m_outputStream;
     ObjectInputStream m_inputStream;
@@ -35,9 +36,16 @@ public class Client_ProcThread implements Runnable {
         Client_CmdType c = Client_CmdType.E_CMD_INVALID_CMD;
         
         try {
-            c = m_supportedCmdTable.get (cmd);
+            
+            // @lfred: trick here -> You can NOT receive a NULL enum
+            Object o = m_supportedCmdTable.get (cmd); 
+            
+            if (o != null)
+                c = (Client_CmdType) o; 
+            
         } catch (Exception e) {
-            Client.log ("User input: " + cmd);
+            Client.log ("Null pointer");
+            return Client_CmdType.E_CMD_INVALID_CMD;
         }
             
         return c;
@@ -47,13 +55,18 @@ public class Client_ProcThread implements Runnable {
 
         try {
             m_loginWindow = null;
-            m_socket = new Socket (ip, port);
             
+            // @lfred: create socket & I/O
+            m_socket = new Socket (ip, port);
             m_outputStream = new ObjectOutputStream (m_socket.getOutputStream ());
             m_inputStream = new ObjectInputStream (m_socket.getInputStream ());
+            
+            // @lfred: init data structure.
             m_cmdQueue = new LinkedBlockingQueue<Client_Command> ();
             m_supportedCmdTable = new Hashtable <String, Client_CmdType> ();
+            m_blockedUsers = new HashSet<String> ();
             
+            // @lfred: init data structure
             initCmdTable ();
             
         } catch (Exception e) {
@@ -82,6 +95,7 @@ public class Client_ProcThread implements Runnable {
     }
 
     public static Client_ProcThread initProcThread (String ip, int port) {
+        
         if (m_procThread == null) {
             m_procThread = new Client_ProcThread (ip, port);
         }
@@ -90,7 +104,6 @@ public class Client_ProcThread implements Runnable {
     }
 
     public static Client_ProcThread getProcThread () {
-
         return m_procThread;
     }
 
@@ -125,48 +138,156 @@ public class Client_ProcThread implements Runnable {
     
     void handleLoginReq (Client_Command cCmd) {
         
-        Client.log ("handleLoginReq");
-        
         String name = cCmd.getStringAt (0);
         String pass = cCmd.getStringAt (1);
+        
+        Client.log ("handleLoginReq: " + name + ":" + pass);
         
         CommObject co = new CommObject (CommObjectType.E_COMM_REQ_LOGIN);
         co.pushString (name);
         co.pushString (pass);
         sendToServer (co);
     }
+    
+    void handleMsgReq (Client_Command cCmd) {
         
+        String name = cCmd.getStringAt (0);
+        String msg  = cCmd.getStringAt (1);
+        
+        Client.log ("handleMsgReq: " + name + ":" + msg);
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_REQ_MESSAGE);
+        co.pushString (name);
+        co.pushString (msg);
+        sendToServer (co);
+    }
+    
+    void handleBroadcastReq (Client_Command cCmd) {
+        
+        String msg = cCmd.getStringAt (0);
+        Client.log ("handleBroadcastReq: " + msg);
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_REQ_BROADCAST);
+        co.pushString (msg);
+        sendToServer (co);
+    }
+    
+    void handleBlockReq (Client_Command cCmd) {
+        
+        String user = cCmd.getStringAt (0);
+        Client.log ("handleBlockReq: " + user);
+        m_blockedUsers.add (user); 
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayBlockingInfo (user, true);       
+    }
+    
+    void handleUnblockReq (Client_Command cCmd) {
+        
+        String user = cCmd.getStringAt (0);
+        Client.log ("handleUnblockReq: " + user);
+        m_blockedUsers.remove (user);    
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayBlockingInfo (user, false);
+    }
+    
+    void handleWhoelseReq (Client_Command cCmd) {
+        
+        Client.log ("handleWhoelseReq");
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_REQ_WHOELSE);
+        sendToServer (co);
+    }
+    
+    void handleWholasthrReq (Client_Command cCmd) {
+        
+        Client.log ("handleWholasthrReq");
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_REQ_WHOLASTHR);
+        sendToServer (co);
+    }
+    
+    void handleWhoelseRsp (Client_Command cCmd) {
+        
+        Client.log ("handleWhoelseRsp");
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.incomingUsrList (cCmd.getStringVector (), false);
+    }
+    
+    void handleBcastRsp (Client_Command cCmd) {
+        
+        String usr = cCmd.getStringAt (0);
+        String msg = cCmd.getStringAt (1);
+        
+        Client.log ("handleBcastRsp");
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.incomingMsg (usr, msg, true);
+    }
+
     public void run () {
-        System.out.println ("Client_ProcThread starts");
+        
+        Client.log ("Client_ProcThread starts");
         
         while (true) {
         
-            Client_Command sCmd;
+            Client_Command cCmd;
 
             try {
-                sCmd = m_cmdQueue.take ();
+                cCmd = m_cmdQueue.take ();
             } catch (Exception e) {
-                System.out.println ("Dequeue Exception - " + e);
+                Client.log ("Dequeue Exception - " + e);
                 e.printStackTrace ();
                 continue;
             }
 
-            System.out.println ("Incoming Client_Command");
+            System.out.println ("Incoming Client_Command: " + cCmd.getCmdType().name());
             
-            switch (sCmd.getCmdType ()) {
+            switch (cCmd.getCmdType ()) {
             
+                // @lfred: client init requests
+                //--------------------------------------------------------------
                 case E_CMD_BLOCK_REQ:
-                case E_CMD_UNBLOCK_REQ: {
-                    // @lfred locally handled
-                }
+                    handleBlockReq (cCmd);
+                break;
+                    
+                case E_CMD_UNBLOCK_REQ:
+                    handleUnblockReq (cCmd);
                 break;
                 
                 case E_CMD_LOGIN_REQ: 
-                    handleLoginReq (sCmd);
+                    handleLoginReq (cCmd);
                 break;
-
+                
+                case E_CMD_MESSAGE_REQ:
+                    handleMsgReq (cCmd);
+                break;
+                
+                case E_CMD_BROADCAST_REQ:
+                    handleBroadcastReq (cCmd);
+                break;
+                
+                case E_CMD_WHOELSE_REQ:
+                    handleWhoelseReq (cCmd);
+                break;
+                
+                case E_CMD_WHOLASTH_REQ:
+                    handleWholasthrReq (cCmd);
+                break;
+                //--------------------------------------------------------------
+                // @lfred: server responses
+                //--------------------------------------------------------------
+                case E_CMD_WHOELSE_RSP:
+                    handleWhoelseRsp (cCmd);
+                break;
+                
+                case E_CMD_BROADCAST_RSP:
+                    handleBcastRsp (cCmd);
+                break;
+                
+                //--------------------------------------------------------------
                 default:
-                     // @lfred: nothing so far
+                     Client.log ("Unhandled client command thus far");
                 break;
             }
         }
