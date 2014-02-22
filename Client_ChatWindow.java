@@ -15,6 +15,9 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     JButton     m_sendBtn;
     JButton     m_logoutBtn;
     
+    // @lfred: idle timer
+    javax.swing.Timer m_idleTimer;
+    
     public static Client_ChatWindow getChatWindow () {
         
         if (mp_chatWin == null) {
@@ -75,6 +78,11 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         pack ();
         setDefaultCloseOperation (JFrame.DO_NOTHING_ON_CLOSE);
         setVisible (true);
+        
+        // @lfred: idle timer
+        m_idleTimer = new javax.swing.Timer (SystemParam.TIME_OUT * 1000, this);
+        m_idleTimer.setRepeats (false);
+        m_idleTimer.start(); 
     }
     
     private Client_Command parsingCommand (String str) {
@@ -178,6 +186,9 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             if (cc != null) {
                 Client_ProcThread.getProcThread ().enqueueCmd (cc);
                 m_cmdText.setText (null);
+                
+                // @lfred: restart idle timer
+                m_idleTimer.restart ();
             } else
                 Client.log ("Incorrect Command Format");
             
@@ -186,8 +197,13 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             
         } else if (e.getSource () == m_logoutBtn) {
             // @lfred: TODO - send logout command
+        } else if (e.getSource () == m_idleTimer) {
+            Client.log ("idle timer time-out");
+            
+            // @lfred: do log-out here.
+            
         } else {
-            System.out.println ("!!! BUG: Bad event !!!");
+            Client.logBug ("Bad event");
             Thread.dumpStack ();
         }
     }
