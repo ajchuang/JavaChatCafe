@@ -48,6 +48,7 @@ public class Server_ProcThread implements Runnable {
         m_cmdQueue = new LinkedBlockingQueue<Server_Command> ();
         m_loginRecord = new Hashtable<String, Date> ();
         
+        m_loginClients = new Hashtable<Integer, String> ();
         m_userList = new Hashtable<String, String> ();
         m_clients  = new Hashtable<Integer, Socket> ();
         m_clntThreadPool = new Hashtable<Integer, Server_ClientWorkerThread> ();
@@ -216,6 +217,7 @@ public class Server_ProcThread implements Runnable {
                 break;
                 
                 case M_SERV_CMD_REQ_AUTH:
+                    handleAuthReq (sCmd);
                 break;
 
                 case M_SERV_CMD_SEND_COMM_OBJ:                    

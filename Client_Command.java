@@ -1,37 +1,40 @@
-
+import java.util.*;
 
 public class Client_Command {
 
-    public final static int M_CMD_TYPE_LOGIN    = 1;
-    //public final static int M_CMD_TYPE_SEND_STR = 2;
-    public final static int M_CMD_TYPE_SEND_WHOELSE = 3;
-    public final static int M_CMD_TYPE_SEND_WHOLASTH = 4;
-    public final static int M_CMD_TYPE_SEND_BROADCAST = 5;
-    public final static int M_CMD_TYPE_SEND_MESSAGE = 6;
-    public final static int M_CMD_TYPE_SEND_BLOCK = 7;
-    public final static int M_CMD_TYPE_SEND_UNBLOCK = 8;
-    public final static int M_CMD_TYPE_SEND_LOGOUT = 9;
+    Client_CmdType m_cmdType;
+    Vector <String> m_strVec;
     
-
-    int m_cmdType;
-    String m_str;
-    String m_subStr;
-
-    Client_Command (int cmd, String str, String subStr) {
+    public Client_Command (Client_CmdType cmd) {
         m_cmdType = cmd;
-        m_str = str;
-        m_subStr = subStr;
+        m_strVec = new Vector <String> ();
     }
     
-    int getCmdType () {
+    public Client_Command (Client_CmdType cmd, String str, String subStr) {
+        m_cmdType = cmd;
+        m_strVec = new Vector <String> ();
+        m_strVec.add (0, str);
+        m_strVec.add (1, subStr);
+    }
+    
+    public Client_CmdType getCmdType () {
         return m_cmdType;
     }
-
-    String getString () {
-        return m_str;
+    
+    public String getStringAt (int i) {
+        String r = null;
+        
+        try {
+            r = m_strVec.get (i);
+        } catch (Exception e) {
+            Client.logBug ("getStringAt error");
+        }
+        
+        return r;
     }
 
-    String getSubString () {
-        return m_subStr;
+    public void pushString (String s) {
+        m_strVec.add (s);
     }
+    
 }

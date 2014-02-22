@@ -18,6 +18,7 @@ public class Client_ProcThread implements Runnable {
         
     // @lfred: The singleton trick
     static Client_ProcThread m_procThread = null;
+    static Hashtable <String, Client_CmdType> m_supportedCmdTable;
     
     // @lfred: UI components
     Client_LoginWindow m_loginWindow;
@@ -28,30 +29,49 @@ public class Client_ProcThread implements Runnable {
     ObjectOutputStream m_outputStream;
     ObjectInputStream m_inputStream;
     
-    public static int isCmdSupported (String cmd) {
-    
-        for (int i = 0; i < m_supportedCmd.length; ++i) {
-            if (cmd.equals (m_supportedCmd[i]) == true)
-                return i + 3;
-        }
+    public static Client_CmdType isCmdSupported (String cmd) {
         
-        return -1;
+        Client.log ("user cmd : " + cmd);
+        Client_CmdType c = Client_CmdType.E_CMD_INVALID_CMD;
+        
+        try {
+            c = m_supportedCmdTable.get (cmd);
+        } catch (Exception e) {
+            Client.log ("User input: " + cmd);
+        }
+            
+        return c;
     }
-    
-
 
     private Client_ProcThread (String ip, int port) {
 
         try {
             m_loginWindow = null;
             m_socket = new Socket (ip, port);
+            
             m_outputStream = new ObjectOutputStream (m_socket.getOutputStream ());
             m_inputStream = new ObjectInputStream (m_socket.getInputStream ());
             m_cmdQueue = new LinkedBlockingQueue<Client_Command> ();
+            m_supportedCmdTable = new Hashtable <String, Client_CmdType> ();
+            
+            initCmdTable ();
+            
         } catch (Exception e) {
-            System.out.println ("Serious problem - can not start up");
+            Client.logBug ("Serious problem - can not start up");
+            e.printStackTrace ();
             System.exit (-1);
         }
+    }
+    
+    void initCmdTable () {
+        
+        m_supportedCmdTable.put (m_supportedCmd[0], Client_CmdType.E_CMD_WHOELSE_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[1], Client_CmdType.E_CMD_WHOLASTH_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[2], Client_CmdType.E_CMD_BROADCAST_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[3], Client_CmdType.E_CMD_MESSAGE_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[4], Client_CmdType.E_CMD_BLOCK_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[5], Client_CmdType.E_CMD_UNBLOCK_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[6], Client_CmdType.E_CMD_LOGOUT_REQ);
     }
 
     public ObjectInputStream getInputStream () {
@@ -90,6 +110,31 @@ public class Client_ProcThread implements Runnable {
     public void setLoginWindow (Client_LoginWindow clw) {
         m_loginWindow = clw;
     }
+    
+    void sendToServer (CommObject co) {
+        
+        try {
+            
+            m_outputStream.writeObject (co);
+            
+        } catch (Exception e) {
+            Client.logBug ("Connection Failure");
+            System.exit (0);
+        }
+    }
+    
+    void handleLoginReq (Client_Command cCmd) {
+        
+        Client.log ("handleLoginReq");
+        
+        String name = cCmd.getStringAt (0);
+        String pass = cCmd.getStringAt (1);
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_REQ_LOGIN);
+        co.pushString (name);
+        co.pushString (pass);
+        sendToServer (co);
+    }
         
     public void run () {
         System.out.println ("Client_ProcThread starts");
@@ -106,13 +151,18 @@ public class Client_ProcThread implements Runnable {
                 continue;
             }
 
-            System.out.println ("Incoming Client_Command - ");
+            System.out.println ("Incoming Client_Command");
+            
             switch (sCmd.getCmdType ()) {
             
-                case Client_Command.M_CMD_TYPE_SEND_BLOCK:
-                case Client_Command.M_CMD_TYPE_SEND_UNBLOCK: {
+                case E_CMD_BLOCK_REQ:
+                case E_CMD_UNBLOCK_REQ: {
                     // @lfred locally handled
                 }
+                break;
+                
+                case E_CMD_LOGIN_REQ: 
+                    handleLoginReq (sCmd);
                 break;
 
                 default:

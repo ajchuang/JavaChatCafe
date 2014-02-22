@@ -2,16 +2,41 @@ import java.net.*;
 import java.io.*;
 
 public class Client {
+    
+    public static void logBug (String s) {
+        System.out.println ("!!! C-Bug: " + s + " !!!");
+    }
+    
+    public static void log (String s) {
+        System.out.println ("   C-Info: " + s);
+    }
 
     public static void main (String args[]) throws Exception {
+
+        String ip;
+        int port;
+
+        // Step 0: extract params
+        if (args.length != 2) {
+            Client.log ("Usage: java Client [host address] [port number]");
+            return;
+        }
+        
+        ip = args[0];
+        
+        try {
+            port = Integer.parseInt (args[1]);
+        } catch (Exception e) {
+            Client.log ("Port number has to be integer.");
+            return;
+        }
+        
+        Client.log ("Connecting to " + ip + ":" + args[1]);
 
         // @lfred: Before anything starts -
         //         we start the UI input thread and Proc thread
         Client_LoginWindow clw = new Client_LoginWindow ();
-        Client_ProcThread pt =
-            Client_ProcThread.initProcThread (
-                args[0],
-                Integer.parseInt (args[1]));
+        Client_ProcThread pt = Client_ProcThread.initProcThread (ip, port);
         pt.setLoginWindow (clw);
 
         Thread t1 = new Thread (pt);

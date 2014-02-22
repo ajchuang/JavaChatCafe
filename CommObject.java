@@ -20,6 +20,10 @@ class CommObject implements Serializable {
         return m_strVec.size (); 
     }
     
+    void pushString (String str) {
+        m_strVec.add (str);
+    }
+    
     void setStringAt (int idx, String str) {
         m_strVec.add (idx, str);
     }

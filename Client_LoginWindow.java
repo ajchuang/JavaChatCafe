@@ -102,7 +102,7 @@ public class Client_LoginWindow extends JFrame implements ActionListener {
                 }
 
                 Client_Command nc =
-                    new Client_Command (Client_Command.M_CMD_TYPE_LOGIN, name, pwd);
+                    new Client_Command (Client_CmdType.E_CMD_LOGIN_REQ, name, pwd);
                 Client_ProcThread.getProcThread ().enqueueCmd (nc);
 
                 m_isAutheticating = true;

@@ -1,4 +1,6 @@
+
 public enum CommObjectType {
+    
     E_COMM_REQ_LOGIN,          // from client
     E_COMM_RESP_LOGIN_OK,       // back to client
     E_COMM_RESP_LOGIN_FAIL,     // back to client

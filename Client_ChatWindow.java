@@ -79,66 +79,83 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     private Client_Command parsingCommand (String str) {
 
         StringTokenizer strToken = new StringTokenizer (str);
+        
+        // empty string
+        if (strToken.hasMoreElements () == false)
+            return null;
+        
         String cmd = strToken.nextToken ();
-        int cmdIdx;
+        Client_CmdType cmdIdx;
         Client_Command cc = null;
         String p1 = null, p2 = null;
         
-        if (cmd != null) {
-            if ((cmdIdx = Client_ProcThread.isCmdSupported (cmd)) != -1) {
-            
-                switch (cmdIdx) {
-                    // @lfred: commands without params
-                    case Client_Command.M_CMD_TYPE_SEND_WHOELSE:
-                    case Client_Command.M_CMD_TYPE_SEND_WHOLASTH:
-                    case Client_Command.M_CMD_TYPE_SEND_LOGOUT: {
-                        cc = new Client_Command (cmdIdx, null, null);
-                    } 
-                    break;
-
-                    // @lfred: commands with 1 param
-                    case Client_Command.M_CMD_TYPE_SEND_BLOCK:
-                    case Client_Command.M_CMD_TYPE_SEND_UNBLOCK:
-                    case Client_Command.M_CMD_TYPE_SEND_BROADCAST: {
-                        
-                        if (strToken.hasMoreElements ()) {
-                            p1 = strToken.nextToken ();
-                            
-                            if (p1 != null)
-                                cc = new Client_Command (cmdIdx, p1, null);
-                            else
-                                System.out.println ("!!! Empty P1 - incorrect format !!!");
-                        } else
-                            System.out.println ("!!! Incorrect User Command !!!");
-                    } 
-                    break;
-
-                    // @lfred: commands with 2 params
-                    case Client_Command.M_CMD_TYPE_SEND_MESSAGE: {
-
-                        if (strToken.hasMoreElements ()) {
-                            p1 = strToken.nextToken ();
-                            
-                            if (p1 != null) {
-                                p2 = str.substring (str.indexOf (p1) + p1.length());
-                                                
-                                if (p2 != null)
-                                    cc = new Client_Command (cmdIdx, p1, p2);
-                                else
-                                    System.out.println ("!!! Empty P2 !!!");
-                            } else
-                                System.out.println ("!!! Empty P1 !!!");
-                        } else
-                            System.out.println ("!!! Incorrect User Command !!!");
-                    } break;
-
-                    default:
-                        System.out.println ("!!! Incorrect User Command !!!");
-                    break;
-                }
-            }
-        }
+        if (cmd == null)
+            return null;
         
+        cmdIdx = Client_ProcThread.isCmdSupported (cmd);
+        
+        if (cmdIdx == Client_CmdType.E_CMD_INVALID_CMD)
+            return null;
+        
+        switch (cmdIdx) {
+            // @lfred: commands without params
+            case E_CMD_WHOELSE_REQ:
+            case E_CMD_WHOLASTH_REQ:
+            case E_CMD_LOGOUT_REQ:
+                cc = new Client_Command (cmdIdx);
+            break;
+
+            // @lfred: commands with 1 param
+            case E_CMD_BLOCK_REQ:
+            case E_CMD_UNBLOCK_REQ:
+            case E_CMD_BROADCAST_REQ: {
+                
+                if (strToken.hasMoreElements ()) {
+                    
+                    p1 = strToken.nextToken ();
+                    
+                    if (p1 != null) {
+                        cc = new Client_Command (cmdIdx);
+                        cc.pushString (p1);
+                    } else {
+                        Client.logBug ("Empty P1 - incorrect format");
+                        return null;
+                    }
+                } else {
+                    Client.logBug ("Incorrect User Command");
+                    return null;
+                }
+            } 
+            break;
+
+            // @lfred: commands with 2 params
+            case E_CMD_MESSAGE_REQ: {
+
+                if (strToken.hasMoreElements ()) {
+                    
+                    p1 = strToken.nextToken ();
+                    
+                    if (p1 != null)
+                        p2 = str.substring (str.indexOf (p1) + p1.length());
+                    else {
+                        Client.logBug ("Empty P1");
+                        return null;
+                    }
+                    
+                    if (p1 != null && p2 != null)
+                        cc = new Client_Command (cmdIdx, p1, p2);                                        
+                    else {
+                        Client.logBug ("Empty P2");
+                        return null;
+                    }
+                        
+                } else {
+                    Client.logBug ("!!! Incorrect User Command !!!");
+                    return null;
+                }
+            } break;
+        }
+    
         return cc;
     }
 
@@ -160,7 +177,13 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             if (cc != null) {
                 Client_ProcThread.getProcThread ().enqueueCmd (cc);
                 m_cmdText.setText (null);
-            }
+            } else
+                Client.log ("Incorrect Command Format");
+            
+            
+            // @lfred: clear the text anyway
+            
+            m_cmdText.setText (null);
             
         } else if (e.getSource () == m_logoutBtn) {
             // @lfred: TODO - send logout command
