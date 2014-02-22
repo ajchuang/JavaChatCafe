@@ -85,6 +85,21 @@ public class Server_ClientReaderThread implements Runnable {
         Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_RESP_WHOELSELASTHR, m_cid);
         Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
+    
+    void handleLogoutReq (CommObject co) {
+        
+        Server.log ("handleLogoutReq");
+        
+        // @lfred: close the input stream ?
+        try {
+            m_inputStream.close ();
+        } catch (Exception e) {
+            e.printStackTrace ();
+        }
+        
+        Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_REQ_LOGOUT, m_cid);
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
 
     public void run () {
 
@@ -118,6 +133,14 @@ public class Server_ClientReaderThread implements Runnable {
                         
                         case E_COMM_REQ_BROADCAST:
                             handleBroadcast (co);
+                        break;
+                        
+                        case E_COMM_REQ_LOGOUT:
+                            handleLogoutReq (co);
+                        return;
+                        
+                        default:
+                            Server.log ("Not handled event: " + co.getOpCode().name());
                         break;
                     }
                 } else {

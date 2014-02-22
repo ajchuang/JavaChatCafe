@@ -167,6 +167,13 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     
         return cc;
     }
+    
+    void doLogout () {
+        
+        m_chatBoard.append ("*System Info* Logging out" + NEW_LINE);
+        Client_Command cmd = new Client_Command (Client_CmdType.E_CMD_LOGOUT_REQ);
+        Client_ProcThread.getProcThread ().enqueueCmd (cmd);
+    }
 
     public void actionPerformed (ActionEvent e) {
     
@@ -196,11 +203,18 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             m_cmdText.setText (null);
             
         } else if (e.getSource () == m_logoutBtn) {
+            
+            Client.log ("Logout Btn triggered");
+            
             // @lfred: TODO - send logout command
+            doLogout ();
+            
         } else if (e.getSource () == m_idleTimer) {
+            
             Client.log ("idle timer time-out");
             
             // @lfred: do log-out here.
+            doLogout ();
             
         } else {
             Client.logBug ("Bad event");

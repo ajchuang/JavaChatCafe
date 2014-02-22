@@ -96,6 +96,19 @@ public class Server_ClientWorkerThread implements Runnable {
         co.pushString (sCmd_v.getStringAt (1));        
         sendToClient (co);
     }
+    
+    void handleLogoutReq (Server_Command sCmd) {
+        
+        try {
+            m_oStream.close ();
+            m_socket.close ();
+        } catch (Exception e) {
+            e.printStackTrace ();
+        }
+        
+        Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_LOGOUT_DONE, m_userId);
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
 
     public void run () {
         
@@ -135,6 +148,10 @@ public class Server_ClientWorkerThread implements Runnable {
                 case M_SERV_CMD_RESP_BROADCAST:
                     handleBroadcastRsp (sCmd);
                 break;
+                
+                case M_SERV_CMD_REQ_LOGOUT:
+                    handleLogoutReq (sCmd);
+                return;
             }
             
         } // while (true)

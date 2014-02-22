@@ -17,5 +17,7 @@ public enum CommObjectType {
     E_COMM_REQ_BROADCAST,       // to Server
     E_COMM_RESP_BROADCAST,      // to Client
     
+    E_COMM_REQ_LOGOUT,          // from client
+    
     E_COMM_ERROR                // used to indicate error
 }

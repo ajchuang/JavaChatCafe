@@ -245,8 +245,23 @@ public class Server_ProcThread implements Runnable {
             return;
         }
         
-        // TODO
+        // TODO: pass msg to others
     } 
+    
+    void handleLogout (Server_Command sCmd) {
+        
+        Server.log ("handleLogout");
+        
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (sCmd.getMyCid ());
+        cwt.enqueueCmd (sCmd);
+        
+        // TODO: mark the user as offline here - start to store offline msg since here. 
+    }
+    
+    void handleLogoutDone (Server_Command sCmd) {
+        // @lfred: client is leaving
+        // do stats update
+    }
 
     public void run () {
 
@@ -293,6 +308,14 @@ public class Server_ProcThread implements Runnable {
                 
                 case M_SERV_CMD_IND_MSG:
                     handleMsgInd (sCmd);
+                break;
+                
+                case M_SERV_CMD_REQ_LOGOUT:
+                    handleLogout (sCmd);
+                break;
+                
+                case M_SERV_CMD_LOGOUT_DONE:
+                    handleLogoutDone (sCmd);
                 break;
                 
                 default:

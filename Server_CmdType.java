@@ -16,5 +16,6 @@
     
     M_SERV_CMD_CLNT_DOWN,           // used in some case that the user is dead or not responding.
     
-    M_SERV_CMD_REQ_LOGOUT
+    M_SERV_CMD_REQ_LOGOUT,
+    M_SERV_CMD_LOGOUT_DONE
 }
