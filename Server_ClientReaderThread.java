@@ -97,7 +97,7 @@ public class Server_ClientReaderThread implements Runnable {
             e.printStackTrace ();
         }
         
-        Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_REQ_LOGOUT, m_cid);
+        Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_REQ_LOGOUT, m_cid);
         Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
 
