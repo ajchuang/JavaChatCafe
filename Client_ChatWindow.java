@@ -6,7 +6,9 @@ import java.util.*;
 public class Client_ChatWindow extends JFrame implements ActionListener {
 
     // @lfred: well, again this is a singleton
-    final static String NEW_LINE = new String ("\n");
+    final static String NEW_LINE    = new String ("\n");
+    final static String ERROR_CMD   = new String ("*System Info* Command Error: "); 
+    
     static Client_ChatWindow mp_chatWin;
 
     // @lfred: UI components
@@ -78,6 +80,12 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         pack ();
         setDefaultCloseOperation (JFrame.DO_NOTHING_ON_CLOSE);
         setVisible (true);
+        
+        addWindowListener (new WindowAdapter () {
+                public void windowOpened (WindowEvent e) {
+                m_cmdText.requestFocus ();
+            }
+        }); 
         
         // @lfred: idle timer
         m_idleTimer = new javax.swing.Timer (SystemParam.TIME_OUT * 1000, this);
@@ -193,14 +201,19 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             if (cc != null) {
                 Client_ProcThread.getProcThread ().enqueueCmd (cc);
                 m_cmdText.setText (null);
+            } else {
                 
-                // @lfred: restart idle timer
-                m_idleTimer.restart ();
-            } else
+                // @lfred: a simple notice to notify that you're wrong.
                 Client.log ("Incorrect Command Format");
+                m_chatBoard.append (ERROR_CMD + t + NEW_LINE);
+            }
             
             // @lfred: clear the text anyway            
             m_cmdText.setText (null);
+            m_cmdText.requestFocus ();
+            
+            // @lfred: restart idle timer
+            m_idleTimer.restart ();
             
         } else if (e.getSource () == m_logoutBtn) {
             
@@ -272,9 +285,9 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     public void displayBlockingInfo (String usr, boolean isBlocked) {
         
         if (isBlocked == true) 
-            m_chatBoard.append ("* System Info* You blocked " + usr + NEW_LINE);
+            m_chatBoard.append ("*System Info* You blocked " + usr + NEW_LINE);
         else
-            m_chatBoard.append ("* System Info* You unblocked " + usr + NEW_LINE);
+            m_chatBoard.append ("*System Info* You unblocked " + usr + NEW_LINE);
     }
 }
 

@@ -1,0 +1,44 @@
+Server_UserDatabase.java:83: error: cannot find symbol
+    public booelan authenticateUsr (String usr, String pwd) {
+           ^
+  symbol:   class booelan
+  location: class Server_UserDatabase
+Server_UserDatabase.java:21: error: cannot find symbol
+        System.log.println ("  [DB] " + str);
+              ^
+  symbol:   variable log
+  location: class System
+Server_UserDatabase.java:39: error: wrong number of type arguments; required 1
+        m_loginRecord = new LinkedList<String, Date> ();
+                                      ^
+Server_UserDatabase.java:53: error: cannot find symbol
+            BufferedReader br =
+            ^
+  symbol:   class BufferedReader
+  location: class Server_UserDatabase
+Server_UserDatabase.java:54: error: cannot find symbol
+                new BufferedReader (new FileReader (M_CONST_USER_DB));
+                    ^
+  symbol:   class BufferedReader
+  location: class Server_UserDatabase
+Server_UserDatabase.java:54: error: cannot find symbol
+                new BufferedReader (new FileReader (M_CONST_USER_DB));
+                                        ^
+  symbol:   class FileReader
+  location: class Server_UserDatabase
+Server_UserDatabase.java:154: error: cannot find symbol
+        return m_nameToCid (name);
+               ^
+  symbol:   method m_nameToCid(String)
+  location: class Server_UserDatabase
+Server_UserDatabase.java:176: error: cannot find symbol
+        rec.sendOffLineMsg (sendser, msg);
+                            ^
+  symbol:   variable sendser
+  location: class Server_UserDatabase
+Server_UserObject.java:31: error: incompatible types
+        m_offlineMsgs = new Vector<Server_UserOfflineMsg> ();
+                        ^
+  required: LinkedList<Server_UserOfflineMsg>
+  found:    Vector<Server_UserOfflineMsg>
+9 errors

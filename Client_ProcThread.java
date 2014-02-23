@@ -232,11 +232,21 @@ public class Client_ProcThread implements Runnable {
         CommObject co = new CommObject (CommObjectType.E_COMM_REQ_LOGOUT);
         sendToServer (co);
         
-        try {
-            m_outputStream.close ();
-            m_inputStream.close ();
-            m_socket.close ();
-        } catch (Exception e) {
+        try { m_outputStream.close (); }
+        catch (Exception e) {
+            Client.log ("output stream is down.");
+            e.printStackTrace ();
+        }
+        
+        try { m_inputStream.close (); }
+        catch (Exception e) {
+            Client.log ("input stream is down.");
+            e.printStackTrace ();
+        }
+        
+        try { m_socket.close (); } 
+        catch (Exception e) {
+            Client.log ("socket is down.");
             e.printStackTrace ();
         }
         

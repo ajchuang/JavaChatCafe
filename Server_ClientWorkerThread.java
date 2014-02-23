@@ -151,10 +151,13 @@ public class Server_ClientWorkerThread implements Runnable {
                 
                 case M_SERV_CMD_REQ_LOGOUT:
                     handleLogoutReq (sCmd);
+                    Server.log ("Server_ClientWorker is off");
                 return;
             }
             
         } // while (true)
+        
+        
     
     }
 }

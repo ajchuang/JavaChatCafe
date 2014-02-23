@@ -10,18 +10,17 @@ public class Server_ProcThread implements Runnable {
     private static String M_CONST_USER_DB = new String ("user_pass.txt");
     private static int M_MAX_LOGIN_TRIES = 3;
 
-    // @lfred: all user list
+    // @lfred: all user list. Usr related info
     Hashtable<String, String> m_userList;
+    Hashtable<String, Date>   m_loginRecord;       //  <name, loginTime>
+    // Hashtable<String,  Time> m_blockingList;
     
     
     LinkedBlockingQueue<Server_Command> m_cmdQueue;
     
     // @lfred: Runtime user databases.
     // @lfred: blocking thing need to check spec.
-    // Hashtable<String,  Time> m_blockingList;
     
-    // @lfred: system data structures
-    Hashtable<String, Date>   m_loginRecord;       //  <name, loginTime>
     
     // @lfred: system user management
     Hashtable<Integer, String> m_loginClients;      //  <cid, name>

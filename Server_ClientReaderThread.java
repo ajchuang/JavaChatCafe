@@ -108,8 +108,24 @@ public class Server_ClientReaderThread implements Runnable {
         try {
             while (true) {
                 // keep reading data from user
-                Object ro = m_inputStream.readObject ();
-
+                Object ro = null;
+                
+                try {
+                    
+                    // @lfred: polling for objects
+                    ro  = m_inputStream.readObject ();
+                    
+                } catch (EOFException eof) {
+                    Server.log ("User drop the connection: send disconnect");
+                    handleLogoutReq (null);
+                    return;
+                } catch (Exception e) {
+                    Server.logBug ("Something I dont know.");
+                    e.printStackTrace ();
+                    handleLogoutReq (null);
+                    return;
+                } 
+                
                 if (ro instanceof CommObject) {
                     CommObject co = (CommObject) ro;
 
@@ -137,6 +153,7 @@ public class Server_ClientReaderThread implements Runnable {
                         
                         case E_COMM_REQ_LOGOUT:
                             handleLogoutReq (co);
+                            Server.log ("Server_ClientWorker is off");
                         return;
                         
                         default:
@@ -147,10 +164,8 @@ public class Server_ClientReaderThread implements Runnable {
                     Server.logBug ("What are you sending ?");
                 }
             }
-        } catch (Exception e) {
-            System.out.println ("User drop the connection: send disconnect");
-            e.printStackTrace ();
-            return;
+        } finally {
+            Server.log ("Clean up before leaving ReaderThread."); 
         }
     }
 }
