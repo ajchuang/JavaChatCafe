@@ -131,6 +131,28 @@ public class Client {
         Client_ProcThread.getProcThread ().enqueueCmd (cc);
     }
     
+    void handleChangePwdRsp (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_CHANGE_PASS_RSP);
+        cc.pushString (co.getStringAt (0));
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleChangePwdRej (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_CHANGE_PASS_REJ);
+        cc.pushString (co.getStringAt (0));
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleSyncRsp (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_SYNC_DB_RSP);
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleSyncRej (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_SYNC_DB_REJ);
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
     public void msgHandler (CommObject co, Client_LoginWindow clw) {
         
         switch (co.getOpCode ()) {
@@ -192,6 +214,22 @@ public class Client {
             // add user rej
             case E_COMM_ADD_USER_REJ:
                 handleAddUsrRej (co);
+            break;
+            
+            case E_COMM_CHANGE_PASS_RSP:
+                handleChangePwdRsp (co);
+            break;
+            
+            case E_COMM_CHANGE_PASS_REJ:
+                handleChangePwdRej (co);
+            break;
+            
+            case E_COMM_SYNC_DB_RSP:
+                handleSyncRsp (co);
+            break;
+            
+            case E_COMM_SYNC_DB_REJ:
+                handleSyncRej (co);
             break;
             
             case E_COMM_REJ_UNBLOCK_USR:

@@ -351,6 +351,9 @@ public class Server_UserDatabase {
                 String s = u.myNameIs () + " " + u.myPassIs ();
                 out.println (s);
             }
+            
+            out.flush ();
+            out.close ();
         } catch (Exception e) {
             return false;
         }

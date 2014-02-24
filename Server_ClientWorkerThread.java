@@ -282,17 +282,51 @@ public class Server_ClientWorkerThread implements Runnable {
     }
 
     void handleAddUsrRej (Server_Command sCmd) {
-        Server_Command_StrVec sCmdv;
-        
+         
         if (sCmd instanceof Server_Command_StrVec == false) {
             Server.logBug ("Bad Type @ handleAddUsrRej");
             return;
         }
         
-        sCmdv = (Server_Command_StrVec) sCmd;
-        
+        Server_Command_StrVec sCmdv = (Server_Command_StrVec) sCmd;
         CommObject co = new CommObject (CommObjectType.E_COMM_ADD_USER_REJ);
         co.pushString (sCmdv.getStringAt (0));
+        sendToClient (co);
+    }
+    
+    void handleChangePwdRsp (Server_Command sCmd) {
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleChangePwdRsp");
+            return;
+        }
+        
+        Server_Command_StrVec sCmdv = (Server_Command_StrVec) sCmd;
+        CommObject co = new CommObject (CommObjectType.E_COMM_CHANGE_PASS_RSP);
+        co.pushString (sCmdv.getStringAt (0));
+        sendToClient (co);
+    }
+    
+    void handleChangePwdRej (Server_Command sCmd) {
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleChangePwdRsp");
+            return;
+        }
+        
+        Server_Command_StrVec sCmdv = (Server_Command_StrVec) sCmd;
+        CommObject co = new CommObject (CommObjectType.E_COMM_CHANGE_PASS_REJ);
+        co.pushString (sCmdv.getStringAt (0));
+        sendToClient (co);
+    }
+    
+    void handleSyncRsp (Server_Command sCmd) {
+        CommObject co = new CommObject (CommObjectType.E_COMM_SYNC_DB_RSP);
+        sendToClient (co);
+    }
+    
+    void handleSyncRej (Server_Command sCmd) {
+        CommObject co = new CommObject (CommObjectType.E_COMM_SYNC_DB_REJ);
         sendToClient (co);
     }
 
@@ -377,6 +411,22 @@ public class Server_ClientWorkerThread implements Runnable {
                 
                 case M_SERV_CMD_ADDUSER_REJ:
                     handleAddUsrRej (sCmd);
+                break;
+                
+                case M_SERV_CMD_CHANGE_PWD_RSP:
+                    handleChangePwdRsp (sCmd);
+                break;
+                    
+                case M_SERV_CMD_CHANGE_PWD_REJ:
+                    handleChangePwdRej (sCmd);
+                break;
+                
+                case M_SERV_CMD_SYNC_RSP:
+                    handleSyncRsp (sCmd);
+                break;
+                
+                case M_SERV_CMD_SYNC_REJ:
+                    handleSyncRej (sCmd);
                 break;
                 
                 case M_SERV_CMD_REQ_LOGOUT:

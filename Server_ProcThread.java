@@ -490,6 +490,48 @@ public class Server_ProcThread implements Runnable {
         Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_FORCE_CLEAN_IND, cid);
         cwt.enqueueCmd (sc);
     }
+    
+    void handleChangePwdReq (Server_Command sCmd) {
+        
+        Server.log ("handleChangePwdReq");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("bad type @ handleChangePwdReq");
+            return;
+        }
+        
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        int cid = sCmd.getMyCid ();
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (cid);
+        
+        String newPassword = sCmd_v.getStringAt (0);
+        String execUser    = m_userDB.cidToName (cid);
+        
+        if (m_userDB.changePwd (execUser, execUser, newPassword) == true) {            
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_CHANGE_PWD_RSP, cid);
+            sc.pushString (execUser);
+            cwt.enqueueCmd (sc); 
+        } else {
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_CHANGE_PWD_REJ, cid);
+            sc.pushString (execUser);
+            cwt.enqueueCmd (sc); 
+        }
+    }
+    
+    void handleSyncReq (Server_Command sCmd) {
+        
+        int cid = sCmd.getMyCid ();
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (cid);
+        String n = m_userDB.cidToName (cid);
+        
+        if (m_userDB.sync (n) == true) {
+            Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_SYNC_RSP, cid);
+            cwt.enqueueCmd (sc);
+        } else {
+            Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_SYNC_REJ, cid);
+            cwt.enqueueCmd (sc);
+        }
+    }
 
     public void run () {
 
@@ -564,6 +606,14 @@ public class Server_ProcThread implements Runnable {
                 
                 case M_SERV_CMD_ADDUSER_REQ:
                     handleAddUserReq (sCmd);
+                break;
+                
+                case M_SERV_CMD_CHANGE_PWD_REQ:
+                    handleChangePwdReq (sCmd);
+                break;
+                
+                case M_SERV_CMD_SYNC_REQ:
+                    handleSyncReq (sCmd);
                 break;
                 
                 default:

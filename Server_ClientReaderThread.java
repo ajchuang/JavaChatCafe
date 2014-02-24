@@ -141,6 +141,25 @@ public class Server_ClientReaderThread implements Runnable {
         sc.pushString (co.getStringAt (1));
         Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
+    
+    void handleChangePassReq (CommObject co) {
+        
+        Server.log ("handleChangePassReq");
+        
+        Server_Command_StrVec sc = 
+            new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_CHANGE_PWD_REQ, m_cid);
+        sc.pushString (co.getStringAt (0));
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
+    
+    void handleSyncReq (CommObject co) {
+        
+        Server.log ("handleSyncReq");
+        
+        Server_Command sc = 
+            new Server_Command (Server_CmdType.M_SERV_CMD_SYNC_REQ, m_cid);
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
 
     public void run () {
 
@@ -209,6 +228,14 @@ public class Server_ClientReaderThread implements Runnable {
                         
                         case E_COMM_ADD_USER_REQ:
                             handleAddUserReq (co);
+                        break;
+                        
+                        case E_COMM_CHANGE_PASS_REQ:
+                            handleChangePassReq (co);
+                        break;
+                        
+                        case E_COMM_SYNC_DB_REQ:
+                            handleSyncReq (co); 
                         break;
                         
                         case E_COMM_REQ_LOGOUT:

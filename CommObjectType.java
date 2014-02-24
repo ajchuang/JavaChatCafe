@@ -32,6 +32,14 @@ public enum CommObjectType {
     E_COMM_ADD_USER_RSP,        // to Client
     E_COMM_ADD_USER_REJ,        // to Client
     
+    E_COMM_CHANGE_PASS_REQ,     // to Server
+    E_COMM_CHANGE_PASS_RSP,     // to Client
+    E_COMM_CHANGE_PASS_REJ,     // to Client
+    
+    E_COMM_SYNC_DB_REQ,         // to Server
+    E_COMM_SYNC_DB_RSP,         // to Client
+    E_COMM_SYNC_DB_REJ,         // to Client
+    
     E_COMM_REQ_LOGOUT,          // from client
     
     E_COMM_ERROR                // used to indicate error

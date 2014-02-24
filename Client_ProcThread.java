@@ -16,7 +16,8 @@ public class Client_ProcThread implements Runnable {
         new String ("unblock"),
         new String ("logout"),
         new String ("add_user"),
-        new String ("new_pass"),
+        new String ("change_pass"),
+        new String ("sync"),
         
         new String ("m"),
         new String ("b"),
@@ -94,13 +95,15 @@ public class Client_ProcThread implements Runnable {
         m_supportedCmdTable.put (m_supportedCmd [5], Client_CmdType.E_CMD_UNBLOCK_REQ);
         m_supportedCmdTable.put (m_supportedCmd [6], Client_CmdType.E_CMD_LOGOUT_REQ);
         m_supportedCmdTable.put (m_supportedCmd [7], Client_CmdType.E_CMD_ADD_USER_REQ);
-        m_supportedCmdTable.put (m_supportedCmd [8], Client_CmdType.E_CMD_NEW_PWD_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [8], Client_CmdType.E_CMD_CHANGE_PASS_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [9], Client_CmdType.E_CMD_SYNC_DB_REQ);
+        
         
         // shorthand command
-        m_supportedCmdTable.put (m_supportedCmd [9], Client_CmdType.E_CMD_MESSAGE_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[10], Client_CmdType.E_CMD_BROADCAST_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[11], Client_CmdType.E_CMD_LOGOUT_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[12], Client_CmdType.E_CMD_HELP_CMD);
+        m_supportedCmdTable.put (m_supportedCmd[10], Client_CmdType.E_CMD_MESSAGE_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[11], Client_CmdType.E_CMD_BROADCAST_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[12], Client_CmdType.E_CMD_LOGOUT_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[13], Client_CmdType.E_CMD_HELP_CMD);
     }
     
     public String[] getSupportedCommand () {
@@ -379,6 +382,50 @@ public class Client_ProcThread implements Runnable {
         Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
         cWin.displayAddUserInfo (newUsr, false);
     }
+    
+    void handleChangePassReq (Client_Command cCmd) {
+        
+        String pass = cCmd.getStringAt (0);
+        Client.log ("handleChangePassReq: " + pass);
+        
+        CommObject cc = new CommObject (CommObjectType.E_COMM_CHANGE_PASS_REQ);
+        cc.pushString (pass);
+        sendToServer (cc);
+    }
+    
+    void handleChangePwdRsp (Client_Command cCmd) {
+        String user = cCmd.getStringAt (0);
+        Client.log ("handleChangePassRsp: " + user);
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayChangePwdInfo (user, true);
+    }
+    
+    void handleChangePwdRej (Client_Command cCmd) {
+        String user = cCmd.getStringAt (0);
+        Client.log ("handleChangePassRsp: " + user);
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayChangePwdInfo (user, false);
+    }
+    
+    void handleSyncReq (Client_Command cCmd) {
+        
+        Client.log ("handleSyncReq");
+        
+        CommObject cc = new CommObject (CommObjectType.E_COMM_SYNC_DB_REQ);
+        sendToServer (cc);
+    }
+    
+    void handleSyncRsp (Client_Command cCmd) {
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displaySyncInfo (true);
+    }
+    
+    void handleSyncRej (Client_Command cCmd) {
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displaySyncInfo (false);
+    }
 
     public void run () {
         
@@ -434,9 +481,18 @@ public class Client_ProcThread implements Runnable {
                     handleAddUserReq (cCmd);
                 break;
                 
+                case E_CMD_CHANGE_PASS_REQ:
+                    handleChangePassReq (cCmd);
+                break;
+                
+                case E_CMD_SYNC_DB_REQ:
+                    handleSyncReq (cCmd);
+                break;
+                
                 case E_CMD_LOGOUT_REQ:
                     handleLogoutReq (cCmd);
                 break;
+                
                 //--------------------------------------------------------------
                 // @lfred: server responses
                 //--------------------------------------------------------------
@@ -487,6 +543,23 @@ public class Client_ProcThread implements Runnable {
                 case E_CMD_ADD_USER_REJ:
                     handleAddUserRej (cCmd);
                 break;
+                
+                case E_CMD_CHANGE_PASS_RSP:
+                    handleChangePwdRsp (cCmd);
+                break;
+                
+                case E_CMD_CHANGE_PASS_REJ:
+                    handleChangePwdRej (cCmd);
+                break;
+                
+                case E_CMD_SYNC_DB_RSP:
+                    handleSyncRsp (cCmd);
+                break;
+                
+                case E_CMD_SYNC_DB_REJ:
+                    handleSyncRej (cCmd);
+                break;
+                
                 
                 //--------------------------------------------------------------
                 default:

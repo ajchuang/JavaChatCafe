@@ -33,6 +33,14 @@
     M_SERV_CMD_ADDUSER_RSP,
     M_SERV_CMD_ADDUSER_REJ,
     
+    M_SERV_CMD_CHANGE_PWD_REQ,
+    M_SERV_CMD_CHANGE_PWD_RSP,
+    M_SERV_CMD_CHANGE_PWD_REJ,
+    
+    M_SERV_CMD_SYNC_REQ,
+    M_SERV_CMD_SYNC_RSP,
+    M_SERV_CMD_SYNC_REJ,
+    
     M_SERV_CMD_CLNT_DOWN,           // used in some case that the user is dead or not responding.
     
     M_SERV_CMD_REQ_LOGOUT,

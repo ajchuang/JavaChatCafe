@@ -141,6 +141,9 @@ public class Client_LoginWindow extends JFrame implements ActionListener {
         } else {
             System.out.println ("reportLoginStatus: FAILED");
            
+            m_pwdText.setText ("");
+            m_pwdText.requestFocus ();
+            
             m_loginBtn.setEnabled (true);
             m_cancelBtn.setEnabled (true);
         }

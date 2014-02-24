@@ -37,9 +37,15 @@ public enum Client_CmdType {
     E_CMD_NEW_PWD_RSP,
     E_CMD_NEW_PWD_REJ,
     
-    E_CMD_NEW_PASS_REQ,
-    E_CMD_NEW_PASS_RSP,
-    E_CMD_NEW_PASS_REJ,
+    // @lfred: change pwd
+    E_CMD_CHANGE_PASS_REQ,
+    E_CMD_CHANGE_PASS_RSP,
+    E_CMD_CHANGE_PASS_REJ,
+    
+    // @lfred: sync feature
+    E_CMD_SYNC_DB_REQ,
+    E_CMD_SYNC_DB_RSP,
+    E_CMD_SYNC_DB_REJ,
     
     E_CMD_HELP_CMD,
     E_CMD_INVALID_CMD

@@ -133,6 +133,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         
         switch (cmdIdx) {
             // @lfred: commands without params
+            case E_CMD_SYNC_DB_REQ:
             case E_CMD_WHOELSE_REQ:
             case E_CMD_WHOLASTH_REQ:
             case E_CMD_LOGOUT_REQ:
@@ -140,6 +141,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             break;
 
             // @lfred: commands with 1 param
+            case E_CMD_CHANGE_PASS_REQ:
             case E_CMD_BLOCK_REQ:
             case E_CMD_UNBLOCK_REQ: {
                 if (strToken.hasMoreElements ()) {
@@ -226,12 +228,11 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                 m_chatBoard.append ("- unblock [user]: unblock some user from sending msg to you" + NEW_LINE);
                 m_chatBoard.append ("- help: show this menu" + NEW_LINE);
                 m_chatBoard.append ("- change_pass [new password]: change your password" + NEW_LINE);
+                //m_chatBoard.append ("- group :" + NEW_LINE);
                 
                 m_chatBoard.append (NEW_LINE + "Administration commands: " + NEW_LINE);
                 m_chatBoard.append ("- add_user [user] [password]: add a new user to the system. admin only" + NEW_LINE);
-                m_chatBoard.append ("- new_pass [user] [new password]: change the user's password. admin only" + NEW_LINE);
-                m_chatBoard.append ("- sync: sync the current user and password info to physical storage. admin only" + NEW_LINE);
-                
+                m_chatBoard.append ("- sync: sync the current user and password info to physical storage. admin only" + NEW_LINE);                
                 
                 m_chatBoard.append (NEW_LINE + "Supported shorthand commands: " + NEW_LINE);
                 m_chatBoard.append ("m for message" + NEW_LINE);
@@ -347,9 +348,9 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         String subStr = Integer.toString (vStr.size ()) + NEW_LINE;
         
         if (isLastHr == true)
-            m_chatBoard.append ("Total users last hour: " + subStr);
+            m_chatBoard.append ("Other users last hour: " + subStr);
         else
-            m_chatBoard.append ("Total active users: " + subStr);
+            m_chatBoard.append ("Other active users: " + subStr);
         
         for (int i=0; i<vStr.size(); ++i)
             m_chatBoard.append (vStr.elementAt (i) + NEW_LINE);
@@ -386,6 +387,24 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             m_chatBoard.append ("*System Info* " + newUsr + " is created." + NEW_LINE);
         } else {
             m_chatBoard.append ("*System Info* " + newUsr + " is NOT created." + NEW_LINE);
+        }
+    }
+    
+    public void displayChangePwdInfo (String newUsr, boolean isDone) {
+        
+        if (isDone == true) {
+            m_chatBoard.append ("*System Info* " + newUsr + "'s password changed." + NEW_LINE);
+        } else {
+            m_chatBoard.append ("*System Info* " + newUsr + "'s is NOT changed." + NEW_LINE);
+        }
+    }
+
+    public void displaySyncInfo (boolean isDone) {
+        
+        if (isDone == true) {
+            m_chatBoard.append ("*System Info* DB sync is done." + NEW_LINE);
+        } else {
+            m_chatBoard.append ("*System Info* DB sync failed." + NEW_LINE);
         }
     }
 }
