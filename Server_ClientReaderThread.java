@@ -100,6 +100,15 @@ public class Server_ClientReaderThread implements Runnable {
         Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_REQ_LOGOUT, m_cid);
         Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
+    
+    void handleWholastHrReq (CommObject co) {
+        
+        Server.log ("handleWholastHrReq");
+        
+        Server_Command_StrVec sc = 
+            new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_RESP_WHOELSELASTHR, m_cid);
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
 
     public void run () {
 
@@ -118,6 +127,9 @@ public class Server_ClientReaderThread implements Runnable {
                 } catch (EOFException eof) {
                     Server.log ("User drop the connection: send disconnect");
                     handleLogoutReq (null);
+                    return;
+                } catch (SocketException se) {
+                    Server.log ("Socket closed already");
                     return;
                 } catch (Exception e) {
                     Server.logBug ("Something I dont know.");
@@ -149,6 +161,10 @@ public class Server_ClientReaderThread implements Runnable {
                         
                         case E_COMM_REQ_BROADCAST:
                             handleBroadcast (co);
+                        break;
+                        
+                        case E_COMM_REQ_WHOLASTHR:
+                            handleWholastHrReq (co);
                         break;
                         
                         case E_COMM_REQ_LOGOUT:

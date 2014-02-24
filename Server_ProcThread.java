@@ -6,30 +6,19 @@ import java.util.concurrent.*;
 // @lfred: This server thread is used to write to the Clients
 public class Server_ProcThread implements Runnable {
 
-    // CONST
-    private static String M_CONST_USER_DB = new String ("user_pass.txt");
-    private static int M_MAX_LOGIN_TRIES = 3;
-
     // @lfred: all user list. Usr related info
-    Hashtable<String, String> m_userList;
-    Hashtable<String, Date>   m_loginRecord;       //  <name, loginTime>
-    // Hashtable<String,  Time> m_blockingList;
+    Server_UserDatabase m_userDB;
     
-    
+    // @lfred: the key data structure in async processing
     LinkedBlockingQueue<Server_Command> m_cmdQueue;
     
-    // @lfred: Runtime user databases.
-    // @lfred: blocking thing need to check spec.
-    
-    
     // @lfred: system user management
-    Hashtable<Integer, String> m_loginClients;      //  <cid, name>
     Hashtable<Integer, Socket> m_clients;           //  <cid, socket>
     Hashtable<Integer, Server_ClientWorkerThread> m_clntThreadPool; //  <cid, thread>
     
     // static
     static Server_ProcThread s_tProc = null;
-    static int s_cid = 0;
+    static int s_cid = 1;
 
     // @lfred: Singleton pattern here.
     static Server_ProcThread getServProcThread () {
@@ -44,63 +33,18 @@ public class Server_ProcThread implements Runnable {
     }
 
     private Server_ProcThread () {
-        m_cmdQueue = new LinkedBlockingQueue<Server_Command> ();
-        m_loginRecord = new Hashtable<String, Date> ();
         
-        m_loginClients = new Hashtable<Integer, String> ();
-        m_userList = new Hashtable<String, String> ();
+        // command queue
+        m_cmdQueue = new LinkedBlockingQueue<Server_Command> ();
+        
+        // user database
+        m_userDB = new Server_UserDatabase ();
+        
+        // system databse
         m_clients  = new Hashtable<Integer, Socket> ();
         m_clntThreadPool = new Hashtable<Integer, Server_ClientWorkerThread> ();
     }
 
-    private boolean loadUserFile () {
-        String line;
-
-        try {
-            // read user database
-            BufferedReader br =
-                new BufferedReader (new FileReader (M_CONST_USER_DB));
-
-            while ((line = br.readLine()) != null) {
-                StringTokenizer tok = new StringTokenizer (line);
-
-                String userName = tok.nextToken ();
-                String passWord = tok.nextToken ();
-
-                System.out.println ("Legal user: " + userName + ":" +passWord);
-                m_userList.put (userName, passWord);
-            }
-        } catch (Exception e) {
-            System.out.println ("Exception: " + e);
-            e.printStackTrace ();
-            return false;
-        }
-
-        return true;
-    }
-    
-    // @lfred: used to authenticate users
-    boolean authenticateUser (int cid, String name, String pwd) {
-
-        boolean res = false;
-
-        //  Check blacklist
-        //  TODO:
-        //  Check the user list
-        
-        if (m_userList.containsKey (name) == true) {    
-            String k = (String) m_userList.get (name);
-            res = k.equals (pwd);
-        }
-        
-        // Debug message
-        if (res == true) {
-            Server.log ("User: " + name + " authenticated");
-        }
-
-        return res;
-    }
-    
     public void enqueueCmd (Server_Command cmd) {
         try {
             m_cmdQueue.put (cmd);
@@ -149,39 +93,81 @@ public class Server_ProcThread implements Runnable {
             return;
         }
         
-        Server_Command_AuthReq scaq = (Server_Command_AuthReq) sCmd;
-        boolean res = authenticateUser (sCmd.getMyCid (), scaq.getUserName (), scaq.getPasswd ());        
+        boolean isAuth = false, isAllowed = false;
         Server_ClientWorkerThread cwt = m_clntThreadPool.get (sCmd.getMyCid ());
+        Server_Command_AuthReq scaq = (Server_Command_AuthReq) sCmd;
         
-        if (cwt != null) {
+        InetAddress ip = m_clients.get (sCmd.getMyCid ()).getInetAddress ();        
+        String name = scaq.getUserName ();
+        String pwd  = scaq.getPasswd ();
+        int    cid  = sCmd.getMyCid ();
         
-            if (res == true) {                          
-                Server_Command sc = 
-                    new Server_Command (
-                        Server_CmdType.M_SERV_CMD_RESP_AUTH_OK, 
+        // 0. Check if logging-in already
+        if (m_userDB.nameToCid (name) != 0) {
+            Server.log ("already logged-in: " + name);
+            Server_Command_StrVec sc = 
+                new Server_Command_StrVec (
+                    Server_CmdType.M_SERV_CMD_RESP_AUTH_REJ, 
+                    sCmd.getMyCid ());
+            sc.pushString (name);
+            cwt.enqueueCmd (sc);
+            Server.logBug ("Logging not allowed");
+            return;
+        }
+        
+        // 1. check credentials
+        Server.log ("Incoming usr:" + name + ":" + pwd);
+        isAuth      = m_userDB.authenticateUsr (name, pwd);
+        isAllowed   = m_userDB.isAllowLogin (name, ip);
+        
+        if (isAuth == true && isAllowed == true) {
+            
+            // TODO: we should do the accounting here (for login users)
+            m_userDB.addCidMapping (name, cid); 
+            m_userDB.updateLoginRecord (name, new Date ());
+            
+            Server_Command sc = 
+                new Server_Command (
+                    Server_CmdType.M_SERV_CMD_RESP_AUTH_OK, 
+                    sCmd.getMyCid ());
+                
+            cwt.enqueueCmd (sc);
+            
+            // start to dump offline msg to user
+            Vector<Server_UserOfflineMsg> offlineMsg = m_userDB.getAndClearOfflineMsg (name);
+            
+            if (offlineMsg.size () != 0) {
+                
+                Server_Command_StrVec cc = 
+                    new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_OFFLINE_MSG_IND, sCmd.getMyCid ());
+                    
+                for (int i=0; i < offlineMsg.size (); ++i) {
+                    cc.pushString (offlineMsg.elementAt (i).m_sender);
+                    cc.pushString (offlineMsg.elementAt (i).m_msg);
+                }
+                
+                cwt.enqueueCmd (cc);
+            }
+                    
+        } else {
+            
+            if (isAllowed == false) {
+                Server_Command_StrVec sc = 
+                    new Server_Command_StrVec (
+                        Server_CmdType.M_SERV_CMD_RESP_AUTH_REJ, 
                         sCmd.getMyCid ());
-                
+                sc.pushString (name);
                 cwt.enqueueCmd (sc);
-                
-                // TODO: we should do the accounting here (for login users)
-                m_loginClients.put (sCmd.getMyCid (), scaq.getUserName ());
-                
-                // add to login list
-                m_loginRecord.remove (scaq.getUserName ()); 
-                m_loginRecord.put (scaq.getUserName (), new Date ());
-                
+                Server.logBug ("Logging not allowed");
             } else {
-                Server_Command sc = 
-                    new Server_Command (
+                Server_Command_StrVec sc = 
+                    new Server_Command_StrVec (
                         Server_CmdType.M_SERV_CMD_RESP_AUTH_FAIL, 
                         sCmd.getMyCid ());
+                sc.pushString (name);
                 cwt.enqueueCmd (sc);
-                
-                // TODO: we should do the accounting here (for failed logins)
+                Server.logBug ("Authentication failed");
             }
-        } else {
-            // @lfred: user diconnects before authentication.
-            return;
         }
     }
     
@@ -197,17 +183,40 @@ public class Server_ProcThread implements Runnable {
         Server_Command_StrVec sCmd_v = (Server_Command_StrVec)sCmd; 
         Server_ClientWorkerThread wt = m_clntThreadPool.get (sCmd_v.getMyCid ());
         
-        if (wt == null)
+        if (wt == null) {
+            Server.logBug ("WorkerThread not presented @ handleWhoelseRsp");
             return;
-        
-        Enumeration<String> e = m_loginClients.elements ();
-        
-        for (; e.hasMoreElements (); ) {
-            String u = e.nextElement ();
-            Server.log (u);
-            sCmd_v.pushString (u);
         }
         
+        Set<String> users = m_userDB.getActiveUsers ();
+        Iterator<String> it = users.iterator ();
+        
+        while (it.hasNext ()) {
+            sCmd_v.pushString (it.next ());
+        }
+        
+        wt.enqueueCmd (sCmd_v);
+    }
+    
+    void handleWholasthrRes (Server_Command sCmd) {
+        
+        Server.log ("handleWhoelseRsp");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type");
+            return;
+        }
+        
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec)sCmd; 
+        Server_ClientWorkerThread wt = m_clntThreadPool.get (sCmd_v.getMyCid ());
+        
+        Date now = new Date ();
+        now.setTime (now.getTime () - SystemParam.LAST_HOUR * 1000);
+        Vector<String> ret = m_userDB.onLineAfterTime (now);
+        
+        for (int i=0; i<ret.size(); ++i)
+            sCmd_v.pushString (ret.elementAt(i));
+            
         wt.enqueueCmd (sCmd_v);
     }
     
@@ -224,15 +233,16 @@ public class Server_ProcThread implements Runnable {
         Server_Command_StrVec sCmd_v2 = 
             new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_RESP_BROADCAST, sCmd.getMyCid ());
             
-        String usr = m_loginClients.get (sCmd_v.getMyCid ());
+        String usr = m_userDB.cidToName (sCmd_v.getMyCid ());
         String msg = sCmd_v.getStringAt (0);
         
         sCmd_v2.pushString (usr);
         sCmd_v2.pushString (msg);
         
+        // send event to everybody
         Enumeration <Server_ClientWorkerThread> wtPool = m_clntThreadPool.elements ();
-        for (; wtPool.hasMoreElements (); )
-            wtPool.nextElement ().enqueueCmd (sCmd_v2);
+        while (wtPool.hasMoreElements ())
+            wtPool.nextElement ().enqueueCmd (sCmd_v2); 
     }
     
     void handleMsgInd (Server_Command sCmd) {
@@ -244,22 +254,90 @@ public class Server_ProcThread implements Runnable {
             return;
         }
         
-        // TODO: pass msg to others
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        String receiver = sCmd_v.getStringAt (0);
+        String sender   = m_userDB.cidToName (sCmd.getMyCid ());
+        String msg      = sCmd_v.getStringAt (1);
+        
+        // 0. check receiver
+        if (m_userDB.isValidUser (receiver) == false) {
+            Server.log ("No such a user @ handleMsgInd");
+            return;
+        }
+        
+        // 1. check if the sender is blocked by the receiver.
+        if (m_userDB.isAllowedSender (receiver, sender) == false) {
+            
+            // you are blocked by the receiver;
+            Server_Command_StrVec sc = 
+                new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_MSG_REJ_RSP, sCmd.getMyCid());
+            sc.pushString (receiver);
+            m_clntThreadPool.get (sCmd.getMyCid ()).enqueueCmd (sc);
+            
+            return;
+        }
+        
+        // 2. check destination user is online or not
+        int r_cid = m_userDB.nameToCid (receiver);
+        Server_Command_StrVec sc2 = 
+            new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_RSP_MSG, sCmd.getMyCid());
+        sc2.pushString (sender);
+        sc2.pushString (receiver);
+        sc2.pushString (msg);
+        m_clntThreadPool.get (sCmd.getMyCid ()).enqueueCmd (sc2);
+         
+        if (r_cid != 0) {
+            // rx is online
+            m_clntThreadPool.get (r_cid).enqueueCmd (sc2);
+            
+        } else {
+            // rx is offline
+            m_userDB.addOfflineMsg (receiver, sender, msg);
+        }
     } 
     
     void handleLogout (Server_Command sCmd) {
         
         Server.log ("handleLogout");
         
-        Server_ClientWorkerThread cwt = m_clntThreadPool.get (sCmd.getMyCid ());
-        cwt.enqueueCmd (sCmd);
+        int cid = sCmd.getMyCid ();
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (cid);
         
-        // TODO: mark the user as offline here - start to store offline msg since here. 
+        if (cwt != null)
+            cwt.enqueueCmd (sCmd);
+        
+        // TODO: mark the user as offline here - start to store offline msg since here.
+        String name = m_userDB.cidToName (cid);
+        
+        if (name != null) {
+            m_userDB.updateLoginRecord (name, new Date ());
+            m_userDB.removeCidMapping (name, cid);
+        }
     }
     
     void handleLogoutDone (Server_Command sCmd) {
         // @lfred: client is leaving
         // do stats update
+    }
+    
+    // clean up for NON-LOGIN clients
+    void handleForceCleanReq (Server_Command sCmd) {
+        
+        Server.log ("handleForceCleanReq");
+        
+        int cid = sCmd.getMyCid ();
+        
+        // clear the data structure
+        Socket s = m_clients.remove (cid);
+        Server_ClientWorkerThread cwt = m_clntThreadPool.remove (cid);
+
+        // close socket
+        try { s.close (); }
+        catch (Exception e) {}
+        
+        // send final command
+        Server_Command sc = new Server_Command (Server_CmdType.M_SERV_CMD_FORCE_CLEAN_IND, cid);
+        cwt.enqueueCmd (sc);
     }
 
     public void run () {
@@ -267,7 +345,7 @@ public class Server_ProcThread implements Runnable {
         Server.log ("Server_ProcThread: started");
 
         // 1. Load user files
-        loadUserFile ();
+        m_userDB.init ();
         
         // 2. start while loop
         while (true) {
@@ -315,6 +393,14 @@ public class Server_ProcThread implements Runnable {
                 
                 case M_SERV_CMD_LOGOUT_DONE:
                     handleLogoutDone (sCmd);
+                break;
+                
+                case M_SERV_CMD_FORCE_CLEAN_REQ:
+                    handleForceCleanReq (sCmd);
+                break;
+                
+                case M_SERV_CMD_RESP_WHOELSELASTHR:
+                    handleWholasthrRes (sCmd);
                 break;
                 
                 default:

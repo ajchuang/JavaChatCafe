@@ -27,6 +27,14 @@ public class Client {
     void handleWholasthrRsp (CommObject co) {
         
         Client.log ("handleWholasthrRsp");
+        
+        Client_Command cCmd = new Client_Command (Client_CmdType.E_CMD_WHOLASTH_RSP);
+        
+        for (int i=0; i<co.getNumOfStrings (); ++i) {
+            cCmd.pushString (co.getStringAt (i));
+        }
+        
+        Client_ProcThread.getProcThread ().enqueueCmd (cCmd);
     }
     
     void handleBroadcastRsp (CommObject co) {
@@ -39,9 +47,40 @@ public class Client {
         Client_ProcThread.getProcThread ().enqueueCmd (cCmd);
     }
     
-    void handleMsgRsp (CommObject co) {
+    void handleMsgRej (CommObject co) {
         
+        Client.log ("handleMsgRej");
+        
+        Client_Command cCmd = new Client_Command (Client_CmdType.E_CMD_MESSAGE_REJ);
+        cCmd.pushString (co.getStringAt (0));
+        Client_ProcThread.getProcThread ().enqueueCmd (cCmd);
+    }
+    
+    void handleMsgRsp (CommObject co) {
         Client.log ("handleMsgRsp");
+        
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_MESSAGE_RSP);
+        
+        for (int i=0; i<co.getNumOfStr(); ++i)
+            cc.pushString (co.getStringAt (i));
+            
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleOfflineMsgInd (CommObject co) {
+        Client.log ("handleOfflineMsgInd");
+        
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_OFFLINE_MSG_IND);
+        
+        for (int i=0; i<co.getNumOfStr(); ++i)
+            cc.pushString (co.getStringAt (i));
+            
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleLoginRej (CommObject co) {
+        // just turn it off.
+        System.exit (0);
     }
     
     public void msgHandler (CommObject co, Client_LoginWindow clw) {
@@ -54,6 +93,10 @@ public class Client {
 
             case E_COMM_RESP_LOGIN_FAIL:
                 clw.reportLoginStatus (false);
+            break;
+            
+            case E_COMM_RESP_LOGIN_REJ:
+                handleLoginRej (co);
             break;
             
             case E_COMM_RESP_WHOELSE:
@@ -70,6 +113,14 @@ public class Client {
         
             case E_COMM_IND_MESSAGE:
                 handleMsgRsp (co);
+            break;
+            
+            case E_COMM_REJ_MESSAGE:
+                handleMsgRej (co);
+            break;
+            
+            case E_COMM_IND_OFFLINE_MSG:
+                handleOfflineMsgInd (co);
             break;
             
             default:
@@ -127,7 +178,10 @@ public class Client {
             } catch (ConnectException ce) {
                 Client.logBug ("Connection refused - Please check server settings");
                 in.close ();
-                break;
+                return;
+            } catch (SocketException se) {
+                Client.logBug ("Socket already closed.");
+                return;
             } catch (Exception e) {
                 e.printStackTrace ();
                 in.close ();

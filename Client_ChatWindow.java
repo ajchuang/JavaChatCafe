@@ -257,14 +257,14 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         }
     }
     
-    public void incomingMsg (String usr, String msg, boolean isBroadcast) {
+    public void incomingMsg (String usr, String rcv, String msg, boolean isBroadcast) {
         
         String output;
         
         if (isBroadcast)
-            output = usr + " is broadcasting" + ": " + msg + NEW_LINE;
+            output = usr + " is broadcasting: " + msg + NEW_LINE;
         else
-            output = usr + ": " + msg + NEW_LINE;
+            output = usr + " says to " + rcv + ": " + msg + NEW_LINE;
             
         m_chatBoard.append (output);
     }
@@ -288,6 +288,14 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             m_chatBoard.append ("*System Info* You blocked " + usr + NEW_LINE);
         else
             m_chatBoard.append ("*System Info* You unblocked " + usr + NEW_LINE);
+    }
+    
+    public void displayBlockedInfo (String usr) {
+        m_chatBoard.append ("*System Info* You are blocked by " + usr + NEW_LINE);
+    }
+    
+    public void displayOfflineMsg (String sender, String msg) {
+        m_chatBoard.append ("*Offline Msg* " + sender + " says: " + msg + NEW_LINE);
     }
 }
 

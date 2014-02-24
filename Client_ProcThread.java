@@ -178,7 +178,9 @@ public class Client_ProcThread implements Runnable {
         Client.log ("handleBlockReq: " + user);
         m_blockedUsers.add (user); 
         Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
-        cWin.displayBlockingInfo (user, true);       
+        cWin.displayBlockingInfo (user, true);
+        
+        CommObject cc = new CommObject (CommObjectType.);              
     }
     
     void handleUnblockReq (Client_Command cCmd) {
@@ -214,6 +216,13 @@ public class Client_ProcThread implements Runnable {
         cWin.incomingUsrList (cCmd.getStringVector (), false);
     }
     
+    void handleWholasthr (Client_Command cCmd) {
+        Client.log ("handleWholasthr");
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.incomingUsrList (cCmd.getStringVector (), true);
+    }
+    
     void handleBcastRsp (Client_Command cCmd) {
         
         String usr = cCmd.getStringAt (0);
@@ -222,7 +231,36 @@ public class Client_ProcThread implements Runnable {
         Client.log ("handleBcastRsp");
         
         Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
-        cWin.incomingMsg (usr, msg, true);
+        cWin.incomingMsg (usr, null, msg, true);
+    }
+    
+    void handleMsgRej (Client_Command cCmd) {
+        
+        String rx = cCmd.getStringAt (0);
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayBlockedInfo (cCmd.getStringAt (0));
+    }
+    
+    void handleOfflineMsgInd (Client_Command cCmd) {
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        
+        for (int i=0; i<cCmd.getNumOfStr (); i+=2) {
+            String sender = cCmd.getStringAt (i);
+            String msg = cCmd.getStringAt (i+1);
+            
+            cWin.displayOfflineMsg (sender, msg);
+        }
+    }
+    
+    void handleMsgRsp (Client_Command cCmd) {
+        
+        String sender = cCmd.getStringAt (0);
+        String receiver = cCmd.getStringAt (1);
+        String msg = cCmd.getStringAt (2);
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.incomingMsg (sender, receiver, msg, false);
     }
     
     void handleLogoutReq (Client_Command cCmd) {
@@ -315,6 +353,22 @@ public class Client_ProcThread implements Runnable {
                 
                 case E_CMD_BROADCAST_RSP:
                     handleBcastRsp (cCmd);
+                break;
+                
+                case E_CMD_MESSAGE_RSP:
+                    handleMsgRsp (cCmd);
+                break;
+                
+                case E_CMD_MESSAGE_REJ:
+                    handleMsgRej (cCmd);
+                break;
+                
+                case E_CMD_OFFLINE_MSG_IND:
+                    handleOfflineMsgInd (cCmd);
+                break;
+                
+                case E_CMD_WHOLASTH_RSP:
+                    handleWholasthr (cCmd);
                 break;
                 
                 //--------------------------------------------------------------

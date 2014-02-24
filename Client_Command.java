@@ -21,6 +21,10 @@ public class Client_Command {
         return m_cmdType;
     }
     
+    public int getNumOfStr () {
+        return m_strVec.size ();
+    }
+    
     // @lfred: should we do this ?
     public Vector<String> getStringVector () {
         return m_strVec;

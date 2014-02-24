@@ -14,6 +14,8 @@ public enum Client_CmdType {
     
     E_CMD_MESSAGE_REQ,
     E_CMD_MESSAGE_RSP,
+    E_CMD_MESSAGE_REJ,
+    E_CMD_OFFLINE_MSG_IND,
     
     E_CMD_LOGOUT_REQ,
 

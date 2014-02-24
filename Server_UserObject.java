@@ -19,7 +19,7 @@ public class Server_UserObject {
     public Server_UserObject (String name, String pwd) {
         
         m_name = new String (name);
-        pwd = new String (pwd);
+        m_pass = new String (pwd);
         m_isAdmin = false;
             
         // init as a very early date
@@ -44,6 +44,8 @@ public class Server_UserObject {
     }
     
     public boolean authenticate (String pwd) {
+        
+        Server_UserDatabase.log ("authenticate: " + pwd + ":" + m_pass);
         
         if (pwd.equals (m_pass))
             return true;
@@ -99,7 +101,11 @@ public class Server_UserObject {
     }
     
     public boolean am_I_blocked_by_usr (String usr) {
-        return m_blockedBy.contains (usr);
+        
+        if (m_blockedBy.contains (usr) == true)
+            return false;
+        else
+            return true; 
     }
     
     // set Login IP

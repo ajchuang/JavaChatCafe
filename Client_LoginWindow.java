@@ -108,6 +108,10 @@ public class Client_LoginWindow extends JFrame implements ActionListener {
                 m_isAutheticating = true;
                 m_loginBtn.setEnabled (false);
                 m_cancelBtn.setEnabled (false);
+                
+                // to prevent the user change the user name all the time.
+                m_nameText.setEditable (false);
+                
             } else {
             
                 // block UI
@@ -123,6 +127,8 @@ public class Client_LoginWindow extends JFrame implements ActionListener {
 
     // callback function used by mainThread to report the login status
     public void reportLoginStatus (boolean isLoginOK) {
+        
+         m_isAutheticating = false;
 
         if (isLoginOK == true) {
             System.out.println ("reportLoginStatus: PASS");
@@ -134,6 +140,9 @@ public class Client_LoginWindow extends JFrame implements ActionListener {
 
         } else {
             System.out.println ("reportLoginStatus: FAILED");
+           
+            m_loginBtn.setEnabled (true);
+            m_cancelBtn.setEnabled (true);
         }
     }
 }

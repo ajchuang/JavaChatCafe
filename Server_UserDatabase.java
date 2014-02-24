@@ -37,6 +37,7 @@ public class Server_UserDatabase {
     
     // c-tor - sigleton again
     Server_UserDatabase () {
+        
         m_loginRecord = new LinkedList<Server_UserLoginRec> ();
         m_users = new Vector<Server_UserObject> ();
         m_nameIdx = new Hashtable <String, Server_UserObject> ();
@@ -61,7 +62,7 @@ public class Server_UserDatabase {
                 String userName = tok.nextToken ();
                 String passWord = tok.nextToken ();
 
-                Server_UserDatabase.log ("user: " + userName + ":" +passWord);
+                Server_UserDatabase.log ("user: " + userName + ":" + passWord);
                 
                 Server_UserObject uo = new Server_UserObject (userName, passWord);
                 
@@ -79,6 +80,14 @@ public class Server_UserDatabase {
         }
 
         return true;
+    }
+    
+    public boolean isValidUser (String usr) {
+        
+        if (m_nameIdx.get (usr) == null)
+            return false;
+        else
+            return true;
     }
     
     public boolean authenticateUsr (String usr, String pwd) {
@@ -102,7 +111,7 @@ public class Server_UserDatabase {
         m_loginRecord.addLast (r);
     }
     
-    public Vector<String> onLineBeforeTime (Date t) {
+    public Vector<String> onLineAfterTime (Date t) {
         Server_UserDatabase.log ("onLineBeforeTime");
         
         Vector <String> ans = new Vector <String> ();
@@ -124,6 +133,10 @@ public class Server_UserDatabase {
     }  
     
     //  cid-name mapping
+    public Set<String> getActiveUsers () {
+        return m_nameToCid.keySet ();
+    }
+    
     public boolean addCidMapping (String name, int cid) {
         
         Server_UserDatabase.log ("addCidMapping");
@@ -156,7 +169,12 @@ public class Server_UserDatabase {
     } 
     
     public int nameToCid (String name) {
-        return m_nameToCid.get (name);
+        Integer i = m_nameToCid.get (name);
+        
+        if (i == null)
+            return 0;
+        else
+            return i.intValue ();
     }
     
     //  offline msg:
@@ -193,6 +211,18 @@ public class Server_UserDatabase {
         }
         
         return ret;
+    }
+    
+    public boolean isAllowedSender (String receiver, String sender) {
+        
+        //Server_UserObject r = m_nameIdx.get (receiver);
+        Server_UserObject s = m_nameIdx.get (sender);
+        
+        if (s == null) {
+            Server_UserDatabase.log ("isAllowedSender: no such a user: " + receiver);
+            return false;
+        } else
+            return s.am_I_blocked_by_usr (receiver);
     }
     
     // login permission check
@@ -251,7 +281,7 @@ public class Server_UserDatabase {
     //  offline msg:
     //      boolean addOfflineMsg (String name, String msg);
     //      Vector<Server_UserOfflineMsg> getOfflineMsg (String name);
-    
+    //      boolean isAllowedSender (String receiver, String sender);
     
     //  Advanced features
     //  admin: operation
