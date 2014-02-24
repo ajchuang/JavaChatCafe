@@ -121,6 +121,8 @@ public class Server_ProcThread implements Runnable {
         isAuth      = m_userDB.authenticateUsr (name, pwd);
         isAllowed   = m_userDB.isAllowLogin (name, ip);
         
+        Server.log ("Auth: " + isAuth + " isAllowed: " + isAllowed);
+        
         if (isAuth == true && isAllowed == true) {
             
             // TODO: we should do the accounting here (for login users)
@@ -183,6 +185,7 @@ public class Server_ProcThread implements Runnable {
         
         Server_Command_StrVec sCmd_v = (Server_Command_StrVec)sCmd; 
         Server_ClientWorkerThread wt = m_clntThreadPool.get (sCmd_v.getMyCid ());
+        String user = m_userDB.cidToName (sCmd_v.getMyCid ());
         
         if (wt == null) {
             Server.logBug ("WorkerThread not presented @ handleWhoelseRsp");
@@ -193,7 +196,11 @@ public class Server_ProcThread implements Runnable {
         Iterator<String> it = users.iterator ();
         
         while (it.hasNext ()) {
-            sCmd_v.pushString (it.next ());
+            String n = it.next ();
+            
+            // @alfred: per request, skipp the current user
+            if (user.equals (n) == false)
+                sCmd_v.pushString (n);
         }
         
         wt.enqueueCmd (sCmd_v);
@@ -208,15 +215,20 @@ public class Server_ProcThread implements Runnable {
             return;
         }
         
-        Server_Command_StrVec sCmd_v = (Server_Command_StrVec)sCmd; 
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec)sCmd;
+        String currentUsr = m_userDB.cidToName (sCmd_v.getMyCid ()); 
         Server_ClientWorkerThread wt = m_clntThreadPool.get (sCmd_v.getMyCid ());
         
         Date now = new Date ();
         now.setTime (now.getTime () - SystemParam.LAST_HOUR * 1000);
         Vector<String> ret = m_userDB.onLineAfterTime (now);
         
-        for (int i=0; i<ret.size(); ++i)
-            sCmd_v.pushString (ret.elementAt(i));
+        for (int i=0; i<ret.size(); ++i) {
+            
+            // @lfred: per request of the spec, skip the current user.
+            if (currentUsr.equals (ret.elementAt(i)) == false)
+                sCmd_v.pushString (ret.elementAt(i));
+        }
             
         wt.enqueueCmd (sCmd_v);
     }
@@ -414,6 +426,33 @@ public class Server_ProcThread implements Runnable {
         }
     }
     
+    void handleAddUserReq (Server_Command sCmd) {
+        
+        Server.log ("handleAddUserReq");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("bad type @ handleAddUserReq");
+            return;
+        }
+        
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        int cid = sCmd.getMyCid ();
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (cid);
+        String newUserName = sCmd_v.getStringAt (0);
+        String newPassword = sCmd_v.getStringAt (1);
+        String execUser    = m_userDB.cidToName (cid);
+        
+        if (m_userDB.addUsr (execUser, newUserName, newPassword) == true) {            
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_ADDUSER_RSP, cid);
+            sc.pushString (newUserName);
+            cwt.enqueueCmd (sc); 
+        } else {
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_ADDUSER_REJ, cid);
+            sc.pushString (newUserName);
+            cwt.enqueueCmd (sc); 
+        }
+    }
+    
     void handleLogoutDone (Server_Command sCmd) {
         // @lfred: client is leaving
         // do stats update
@@ -521,6 +560,10 @@ public class Server_ProcThread implements Runnable {
                     
                 case M_SERV_CMD_UNBLOCK_REQ:
                     handleUnblockReq (sCmd);
+                break;
+                
+                case M_SERV_CMD_ADDUSER_REQ:
+                    handleAddUserReq (sCmd);
                 break;
                 
                 default:

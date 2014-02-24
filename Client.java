@@ -119,6 +119,18 @@ public class Client {
         Client_ProcThread.getProcThread ().enqueueCmd (cc);
     }
     
+    void handleAddUsrRsp (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_ADD_USER_RSP);
+        cc.pushString (co.getStringAt (0));
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleAddUsrRej (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_ADD_USER_REJ);
+        cc.pushString (co.getStringAt (0));
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
     public void msgHandler (CommObject co, Client_LoginWindow clw) {
         
         switch (co.getOpCode ()) {
@@ -170,6 +182,16 @@ public class Client {
             // unblock
             case E_COMM_RSP_UNBLOCK_USR:
                 handleUnblockRsp (co);
+            break;
+            
+            // add user ok
+            case E_COMM_ADD_USER_RSP:
+                handleAddUsrRsp (co);
+            break;
+            
+            // add user rej
+            case E_COMM_ADD_USER_REJ:
+                handleAddUsrRej (co);
             break;
             
             case E_COMM_REJ_UNBLOCK_USR:

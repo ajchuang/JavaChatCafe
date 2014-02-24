@@ -130,7 +130,17 @@ public class Server_ClientReaderThread implements Runnable {
         sc.pushString (co.getStringAt (0));
         Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
-
+    
+    void handleAddUserReq (CommObject co) {
+        
+        Server.log ("handleAddUserReq");
+        
+        Server_Command_StrVec sc = 
+            new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_ADDUSER_REQ, m_cid);
+        sc.pushString (co.getStringAt (0));
+        sc.pushString (co.getStringAt (1));
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
 
     public void run () {
 
@@ -195,6 +205,10 @@ public class Server_ClientReaderThread implements Runnable {
                         
                         case E_COMM_REQ_UNBLOCK_USR:
                             handleUnblockReq (co);
+                        break;
+                        
+                        case E_COMM_ADD_USER_REQ:
+                            handleAddUserReq (co);
                         break;
                         
                         case E_COMM_REQ_LOGOUT:

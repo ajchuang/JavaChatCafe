@@ -29,6 +29,9 @@
     M_SERV_CMD_UNBLOCK_RSP,
     M_SERV_CMD_UNBLOCK_REJ,
     
+    M_SERV_CMD_ADDUSER_REQ,
+    M_SERV_CMD_ADDUSER_RSP,
+    M_SERV_CMD_ADDUSER_REJ,
     
     M_SERV_CMD_CLNT_DOWN,           // used in some case that the user is dead or not responding.
     

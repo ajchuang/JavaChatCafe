@@ -297,6 +297,67 @@ public class Server_UserDatabase {
         usr.setBarredTill (t, ip);
     }
     
+    // @lfred: advanced feature - 
+    public boolean addUsr (String exec_usr, String name, String pwd) {
+        
+        Server_UserObject exe_usr = m_nameIdx.get (exec_usr);
+        
+        if (exe_usr == null || exe_usr.isAdmin () == false)
+            return false;
+        
+        // check all consitions    
+        if (name == null || name.length () == 0 || m_nameIdx.get (name) != null || pwd == null || pwd.length() == 0)
+            return false;
+            
+        Server_UserObject newUser = new Server_UserObject (name, pwd);
+        m_users.add (newUser);
+        m_nameIdx.put (name, newUser);
+        return true;
+    }
+    
+    // @lfred: advanced feature - change PWD
+    public boolean changePwd (String exec_usr, String dest, String newPwd) {
+        
+        Server_UserObject exe_usr = m_nameIdx.get (exec_usr);
+        Server_UserObject dst_usr = m_nameIdx.get (dest);
+        
+        if (newPwd == null || newPwd.length () == 0) 
+            return false;
+        
+        if (exec_usr == null || dst_usr == null)
+            return false;
+        
+        // allowed to change pwd   
+        if (exe_usr.isAdmin () == true || dest.equals (exec_usr) == true)
+            dst_usr.newPasswd (newPwd);
+        
+        return true;
+    }
+    
+    public boolean sync (String exec_user) {
+        
+        Server_UserObject exe_usr = m_nameIdx.get (exec_user);
+        
+        if (exe_usr == null || exe_usr.isAdmin () == false)
+            return false;
+            
+        // write to database
+        try {
+            PrintWriter out
+                = new PrintWriter (new BufferedWriter (new FileWriter (M_CONST_USER_DB)));
+                
+            for (int i=0; i<m_users.size(); ++i) {
+                Server_UserObject u = m_users.elementAt (i);
+                String s = u.myNameIs () + " " + u.myPassIs ();
+                out.println (s);
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        
+        return true;
+    }
+    
     //  @lfred: methods
     //  db system processing
     //      boolean init (); // loading DB, and init.

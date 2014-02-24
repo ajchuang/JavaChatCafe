@@ -29,11 +29,17 @@ public class Server_UserObject {
         m_blockedBy = new HashSet<String> ();
         
         m_offlineMsgs = new LinkedList<Server_UserOfflineMsg> ();
+        
+        Server_UserDatabase.log ("user: " + m_name + " pass: " + m_pass);
     }
     
     public String myNameIs () {
         return m_name;
     } 
+    
+    public String myPassIs () {
+        return m_pass;
+    }
     
     public boolean isAdmin () {
         return m_isAdmin;
@@ -131,5 +137,9 @@ public class Server_UserObject {
         }
         
         return msg;
+    }
+    
+    public void newPasswd (String newPwd) {
+        m_pass = new String (newPwd);
     }
 }

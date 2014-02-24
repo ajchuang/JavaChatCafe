@@ -28,6 +28,10 @@ public enum CommObjectType {
     E_COMM_RSP_UNBLOCK_USR,     // to Client
     E_COMM_REJ_UNBLOCK_USR,     // to Client
     
+    E_COMM_ADD_USER_REQ,        // to Server
+    E_COMM_ADD_USER_RSP,        // to Client
+    E_COMM_ADD_USER_REJ,        // to Client
+    
     E_COMM_REQ_LOGOUT,          // from client
     
     E_COMM_ERROR                // used to indicate error

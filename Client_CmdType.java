@@ -27,6 +27,20 @@ public enum Client_CmdType {
     E_CMD_UNBLOCK_RSP,
     E_CMD_UNBLOCK_REJ,
     
+    // @lfred: admin feature
+    E_CMD_ADD_USER_REQ,
+    E_CMD_ADD_USER_RSP,
+    E_CMD_ADD_USER_REJ,
+    
+    // @lfred: admin feature
+    E_CMD_NEW_PWD_REQ,
+    E_CMD_NEW_PWD_RSP,
+    E_CMD_NEW_PWD_REJ,
+    
+    E_CMD_NEW_PASS_REQ,
+    E_CMD_NEW_PASS_RSP,
+    E_CMD_NEW_PASS_REJ,
+    
     E_CMD_HELP_CMD,
     E_CMD_INVALID_CMD
 }

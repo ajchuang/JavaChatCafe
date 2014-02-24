@@ -133,7 +133,7 @@ public class Client_LoginWindow extends JFrame implements ActionListener {
         if (isLoginOK == true) {
             System.out.println ("reportLoginStatus: PASS");
 
-            Client_ChatWindow cw = Client_ChatWindow.getChatWindow ();
+            Client_ChatWindow cw = Client_ChatWindow.initChatWindow (m_nameText.getText ());
             Client_ProcThread pt = Client_ProcThread.getProcThread ();
             pt.setLoginWindow (null);
             dispose ();

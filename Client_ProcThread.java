@@ -15,6 +15,8 @@ public class Client_ProcThread implements Runnable {
         new String ("block"),
         new String ("unblock"),
         new String ("logout"),
+        new String ("add_user"),
+        new String ("new_pass"),
         
         new String ("m"),
         new String ("b"),
@@ -83,18 +85,22 @@ public class Client_ProcThread implements Runnable {
     
     void initCmdTable () {
         
-        m_supportedCmdTable.put (m_supportedCmd[0], Client_CmdType.E_CMD_WHOELSE_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[1], Client_CmdType.E_CMD_WHOLASTH_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[2], Client_CmdType.E_CMD_BROADCAST_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[3], Client_CmdType.E_CMD_MESSAGE_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[4], Client_CmdType.E_CMD_BLOCK_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[5], Client_CmdType.E_CMD_UNBLOCK_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[6], Client_CmdType.E_CMD_LOGOUT_REQ);
+        // main command
+        m_supportedCmdTable.put (m_supportedCmd [0], Client_CmdType.E_CMD_WHOELSE_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [1], Client_CmdType.E_CMD_WHOLASTH_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [2], Client_CmdType.E_CMD_BROADCAST_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [3], Client_CmdType.E_CMD_MESSAGE_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [4], Client_CmdType.E_CMD_BLOCK_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [5], Client_CmdType.E_CMD_UNBLOCK_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [6], Client_CmdType.E_CMD_LOGOUT_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [7], Client_CmdType.E_CMD_ADD_USER_REQ);
+        m_supportedCmdTable.put (m_supportedCmd [8], Client_CmdType.E_CMD_NEW_PWD_REQ);
         
-        m_supportedCmdTable.put (m_supportedCmd[7], Client_CmdType.E_CMD_MESSAGE_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[8], Client_CmdType.E_CMD_BROADCAST_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[9], Client_CmdType.E_CMD_LOGOUT_REQ);
-        m_supportedCmdTable.put (m_supportedCmd[10], Client_CmdType.E_CMD_HELP_CMD);
+        // shorthand command
+        m_supportedCmdTable.put (m_supportedCmd [9], Client_CmdType.E_CMD_MESSAGE_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[10], Client_CmdType.E_CMD_BROADCAST_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[11], Client_CmdType.E_CMD_LOGOUT_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[12], Client_CmdType.E_CMD_HELP_CMD);
     }
     
     public String[] getSupportedCommand () {
@@ -346,6 +352,33 @@ public class Client_ProcThread implements Runnable {
         Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
         cWin.displayBlockingFailInfo (u, reason, false);
     }
+    
+    void handleAddUserReq (Client_Command cCmd) {
+        
+        String user = cCmd.getStringAt (0);
+        String pass = cCmd.getStringAt (1);
+        
+        Client.log ("handleAddUserReq: " + user + ":" + pass);
+        
+        CommObject cc = new CommObject (CommObjectType.E_COMM_ADD_USER_REQ);
+        cc.pushString (user);
+        cc.pushString (pass);
+        sendToServer (cc);
+    }
+    
+    void handleAddUserRsp (Client_Command cCmd) {
+        
+        String newUsr = cCmd.getStringAt (0);
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayAddUserInfo (newUsr, true);
+    }
+    
+    void handleAddUserRej (Client_Command cCmd) {
+        
+        String newUsr = cCmd.getStringAt (0);
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayAddUserInfo (newUsr, false);
+    }
 
     public void run () {
         
@@ -397,6 +430,10 @@ public class Client_ProcThread implements Runnable {
                     handleWholasthrReq (cCmd);
                 break;
                 
+                case E_CMD_ADD_USER_REQ:
+                    handleAddUserReq (cCmd);
+                break;
+                
                 case E_CMD_LOGOUT_REQ:
                     handleLogoutReq (cCmd);
                 break;
@@ -441,6 +478,14 @@ public class Client_ProcThread implements Runnable {
                 
                 case E_CMD_UNBLOCK_REJ:
                     handleUnblockRej (cCmd);
+                break;
+                
+                case E_CMD_ADD_USER_RSP:
+                    handleAddUserRsp (cCmd);
+                break;
+                
+                case E_CMD_ADD_USER_REJ:
+                    handleAddUserRej (cCmd);
                 break;
                 
                 //--------------------------------------------------------------

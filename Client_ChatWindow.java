@@ -21,16 +21,27 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     // @lfred: idle timer
     javax.swing.Timer m_idleTimer;
     
+    public static Client_ChatWindow initChatWindow (String name) {
+        
+        if (mp_chatWin == null) {
+            mp_chatWin = new Client_ChatWindow (name);
+        }
+        
+        return mp_chatWin;
+    }
+    
     public static Client_ChatWindow getChatWindow () {
         
         if (mp_chatWin == null) {
-            mp_chatWin = new Client_ChatWindow ();
+            Client.logBug ("System error @ getChatWindow");
         }
         
         return mp_chatWin;
     }
 
-    private Client_ChatWindow () {
+    private Client_ChatWindow (String n) {
+        
+        setTitle (n);
         
         setLayout (new GridBagLayout ());
 
@@ -114,6 +125,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         if (cmd == null)
             return null;
         
+        cmd = cmd.trim ();
         cmdIdx = Client_ProcThread.isCmdSupported (cmd);
         
         if (cmdIdx == Client_CmdType.E_CMD_INVALID_CMD)
@@ -133,6 +145,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                 if (strToken.hasMoreElements ()) {
                     
                     p1 = strToken.nextToken ();
+                    p1 = p1.trim ();
                     
                     if (p1 != null) {
                         cc = new Client_Command (cmdIdx);
@@ -153,6 +166,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                 if (strToken.hasMoreElements ()) {
                     
                     p1 = str.substring (str.indexOf (cmd) + cmd.length());
+                    p1 = p1.trim ();
                     Client.log ("bcast: " + p1);
                     
                     if (p1 != null) {
@@ -170,22 +184,26 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             } break;
 
             // @lfred: commands with 2 params
+            case E_CMD_ADD_USER_REQ:
             case E_CMD_MESSAGE_REQ: {
 
                 if (strToken.hasMoreElements ()) {
                     
                     p1 = strToken.nextToken ();
+                    p1 = p1.trim ();
                     
-                    if (p1 != null)
+                    if (p1 != null) {
                         p2 = str.substring (str.indexOf (p1) + p1.length());
-                    else {
+                        p2 = p2.trim ();
+                    } else {
                         Client.logBug ("Empty P1");
                         return null;
                     }
                     
-                    if (p1 != null && p2 != null)
+                    if (p1 != null && p2 != null) {
+                        Client.log ("P1: " + p1 + ", P2: " + p2);
                         cc = new Client_Command (cmdIdx, p1, p2);                                        
-                    else {
+                    } else {
                         Client.logBug ("Empty P2");
                         return null;
                     }
@@ -199,19 +217,28 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             
             case E_CMD_HELP_CMD: {
                 
-                String cmds[] = Client_ProcThread.getProcThread ().getSupportedCommand ();
-                
                 m_chatBoard.append ("Supported commands: " + NEW_LINE);
+                m_chatBoard.append ("- whoelse: list all other users online" + NEW_LINE);
+                m_chatBoard.append ("- wholasthr: list all other users online in last hour" + NEW_LINE);
+                m_chatBoard.append ("- broadcast [msg]: send message to all online users" + NEW_LINE);
+                m_chatBoard.append ("- message [user] [msg]: send message to a certain user online or offline" + NEW_LINE);
+                m_chatBoard.append ("- block [user]: block some user from sending msg to you" + NEW_LINE);
+                m_chatBoard.append ("- unblock [user]: unblock some user from sending msg to you" + NEW_LINE);
+                m_chatBoard.append ("- help: show this menu" + NEW_LINE);
+                m_chatBoard.append ("- change_pass [new password]: change your password" + NEW_LINE);
                 
-                for (int i=0; i<7; ++i) {
-                    m_chatBoard.append (cmds[i] + NEW_LINE);
-                }
+                m_chatBoard.append (NEW_LINE + "Administration commands: " + NEW_LINE);
+                m_chatBoard.append ("- add_user [user] [password]: add a new user to the system. admin only" + NEW_LINE);
+                m_chatBoard.append ("- new_pass [user] [new password]: change the user's password. admin only" + NEW_LINE);
+                m_chatBoard.append ("- sync: sync the current user and password info to physical storage. admin only" + NEW_LINE);
+                
                 
                 m_chatBoard.append (NEW_LINE + "Supported shorthand commands: " + NEW_LINE);
                 m_chatBoard.append ("m for message" + NEW_LINE);
                 m_chatBoard.append ("b for broadcast" + NEW_LINE);
                 m_chatBoard.append ("lo for logout" + NEW_LINE);
                 
+                // just to avoid complains from system
                 cc = new Client_Command (cmdIdx);
             }
             break;
@@ -351,6 +378,15 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     
     public void displayOfflineMsg (String sender, String msg) {
         m_chatBoard.append ("*Offline Msg* " + sender + " says: " + msg + NEW_LINE);
+    }
+    
+    public void displayAddUserInfo (String newUsr, boolean isDone) {
+        
+        if (isDone == true) {
+            m_chatBoard.append ("*System Info* " + newUsr + " is created." + NEW_LINE);
+        } else {
+            m_chatBoard.append ("*System Info* " + newUsr + " is NOT created." + NEW_LINE);
+        }
     }
 }
 

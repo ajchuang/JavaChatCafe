@@ -265,6 +265,36 @@ public class Server_ClientWorkerThread implements Runnable {
         co.pushString (sCmdv.getStringAt (1));
         sendToClient (co);
     }
+    
+    void handleAddUsrRsp (Server_Command sCmd) {
+        Server_Command_StrVec sCmdv;
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleAddUsrRsp");
+            return;
+        }
+        
+        sCmdv = (Server_Command_StrVec) sCmd;
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_ADD_USER_RSP);
+        co.pushString (sCmdv.getStringAt (0));
+        sendToClient (co);
+    }
+
+    void handleAddUsrRej (Server_Command sCmd) {
+        Server_Command_StrVec sCmdv;
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleAddUsrRej");
+            return;
+        }
+        
+        sCmdv = (Server_Command_StrVec) sCmd;
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_ADD_USER_REJ);
+        co.pushString (sCmdv.getStringAt (0));
+        sendToClient (co);
+    }
 
     public void run () {
         
@@ -339,6 +369,14 @@ public class Server_ClientWorkerThread implements Runnable {
                 
                 case M_SERV_CMD_UNBLOCK_REJ:
                     handleUnblockRej (sCmd);
+                break;
+                
+                case M_SERV_CMD_ADDUSER_RSP:
+                    handleAddUsrRsp (sCmd);
+                break;
+                
+                case M_SERV_CMD_ADDUSER_REJ:
+                    handleAddUsrRej (sCmd);
                 break;
                 
                 case M_SERV_CMD_REQ_LOGOUT:
