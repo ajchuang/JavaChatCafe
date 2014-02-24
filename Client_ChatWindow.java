@@ -20,6 +20,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     
     // @lfred: idle timer
     javax.swing.Timer m_idleTimer;
+    String      m_name;
     
     public static Client_ChatWindow initChatWindow (String name) {
         
@@ -41,7 +42,8 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
 
     private Client_ChatWindow (String n) {
         
-        setTitle (n);
+        m_name = new String (n);
+        setTitle (m_name);
         
         setLayout (new GridBagLayout ());
 
@@ -272,9 +274,20 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             
             if (cc != null) {
                 if (cc.getCmdType () != Client_CmdType.E_CMD_HELP_CMD) {
+                    
+                    if (cc.getCmdType () == Client_CmdType.E_CMD_MESSAGE_REQ && 
+                        cc.getStringAt (0).equals (m_name)) {
+                            
+                        // @lfred: send info to yourself - fuck dont do that butthead.
+                        cc = new Client_Command (Client_CmdType.E_UPDATE_UI_REQ);
+                        cc.pushString ("*System Info* Dont send message to yourself");
+                    } 
+                    
                     Client_ProcThread.getProcThread ().enqueueCmd (cc);
-                    m_cmdText.setText (null);
+                    m_cmdText.setText (null);                    
                 }
+                
+                
             } else {
                 
                 // @lfred: a simple notice to notify that you're wrong.
@@ -406,6 +419,10 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         } else {
             m_chatBoard.append ("*System Info* DB sync failed." + NEW_LINE);
         }
+    }
+    
+    public void displayLocalInfo (String s) {
+        m_chatBoard.append (s + NEW_LINE);
     }
 }
 

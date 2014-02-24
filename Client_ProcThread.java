@@ -426,6 +426,11 @@ public class Client_ProcThread implements Runnable {
         Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
         cWin.displaySyncInfo (false);
     }
+    
+    void handleUpdateUiReq (Client_Command cCmd) {
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayLocalInfo (cCmd.getStringAt (0));
+    }
 
     public void run () {
         
@@ -491,6 +496,10 @@ public class Client_ProcThread implements Runnable {
                 
                 case E_CMD_LOGOUT_REQ:
                     handleLogoutReq (cCmd);
+                break;
+                
+                case E_UPDATE_UI_REQ:
+                    handleUpdateUiReq (cCmd);
                 break;
                 
                 //--------------------------------------------------------------
