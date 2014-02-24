@@ -1,5 +1,6 @@
 import java.util.*;
 import java.net.*;
+import java.io.*;
 
 public class Server_UserDatabase {
     
@@ -18,7 +19,7 @@ public class Server_UserDatabase {
     
     
     public static void log (String str) {
-        System.log.println ("  [DB] " + str);
+        System.out.println ("  [DB] " + str);
     }
     
     public static Server_UserDatabase getUsrDatabse () {
@@ -36,7 +37,7 @@ public class Server_UserDatabase {
     
     // c-tor - sigleton again
     Server_UserDatabase () {
-        m_loginRecord = new LinkedList<String, Date> ();
+        m_loginRecord = new LinkedList<Server_UserLoginRec> ();
         m_users = new Vector<Server_UserObject> ();
         m_nameIdx = new Hashtable <String, Server_UserObject> ();
         
@@ -80,7 +81,7 @@ public class Server_UserDatabase {
         return true;
     }
     
-    public booelan authenticateUsr (String usr, String pwd) {
+    public boolean authenticateUsr (String usr, String pwd) {
         
         Server_UserDatabase.log ("authenticateUsr");
         
@@ -129,14 +130,17 @@ public class Server_UserDatabase {
         
         if (m_cidToName.contains (name) == true || m_cidToName.containsKey (cid) == true) {
             Server_UserDatabase.log ("FATAL - DB async");
+            return false;
         }
         
         if (m_nameToCid.contains (cid) == true || m_nameToCid.containsKey (name) == true) {
             Server_UserDatabase.log ("FATAL - DB async");
+            return false;
         }
                 
         m_cidToName.put (cid, name);
         m_nameToCid.put (name, cid);
+        return true;
     }
     
     public boolean removeCidMapping (String name, int cid) {
@@ -144,6 +148,7 @@ public class Server_UserDatabase {
         Server_UserDatabase.log ("removeCidMapping");
         m_cidToName.remove (cid);
         m_nameToCid.remove (name);
+        return true;
     }
     
     public String cidToName (int cid) {
@@ -151,13 +156,7 @@ public class Server_UserDatabase {
     } 
     
     public int nameToCid (String name) {
-        return m_nameToCid (name);
-    }
-    
-    // login permission check
-    public boolean isAllowLogin (String name, InetAddress ip) {
-        
-        // check if the user is barred, and the barred address
+        return m_nameToCid.get (name);
     }
     
     //  offline msg:
@@ -166,19 +165,66 @@ public class Server_UserDatabase {
         Server_UserDatabase.log ("addOfflineMsg");
         Server_UserObject rec = m_nameIdx.get (receiver);
         
-        
         if (rec == null) {
             Server_UserDatabase.log ("No such user: " + receiver);
             return false;
         }
             
-        Server_UserOfflineMsg m = new Server_UserOfflineMsg (sender, msg);
-        rec.sendOffLineMsg (sendser, msg);
+        rec.sendOffLineMsg (sender, msg);
         
         return true;
     }
-    //      void    clearOfflineMsg ();
-    //      Vector<Server_UserOfflineMsg> getOfflineMsg (String name);
+    
+    public Vector<Server_UserOfflineMsg> getAndClearOfflineMsg (String name) {
+        
+        Server_UserDatabase.log ("getAndClearOfflineMsg");
+        Server_UserObject owner = m_nameIdx.get (name);
+        
+        if (owner == null) {
+            Server_UserDatabase.log ("No such user: " + owner);
+            return null;
+        }
+        
+        Server_UserOfflineMsg msg;
+        Vector <Server_UserOfflineMsg> ret = new Vector<Server_UserOfflineMsg> ();
+        
+        while ((msg = owner.takeNextOfflineMsg ()) != null) {
+            ret.add (msg);
+        }
+        
+        return ret;
+    }
+    
+    // login permission check
+    public boolean isAllowLogin  (String name, InetAddress ip) {
+        
+        Server_UserDatabase.log ("isAllowLogin");
+        Server_UserObject usr = m_nameIdx.get (name);
+        
+        if (usr == null) {
+            Server_UserDatabase.log ("No such user: " + usr);
+            return false;
+        }
+        
+        if (usr.isBarred (ip) == true)
+            return false;
+        else
+            return true;
+    }
+    
+    public void barUsr (String name, Date time, InetAddress ip) {
+        
+        Server_UserDatabase.log ("barUsr");
+        Server_UserObject usr = m_nameIdx.get (name);
+        
+        if (usr == null) {
+            Server_UserDatabase.log ("No such user: " + usr);
+            return;
+        }
+        
+        Date t = new Date (time.getTime () + SystemParam.BLOCK_TIME * 1000);
+        usr.setBarredTill (t, ip);
+    }
     
     //  @lfred: methods
     //  db system processing
@@ -204,10 +250,10 @@ public class Server_UserDatabase {
     
     //  offline msg:
     //      boolean addOfflineMsg (String name, String msg);
-    //      void    clearOfflineMsg ();
     //      Vector<Server_UserOfflineMsg> getOfflineMsg (String name);
     
-         
+    
+    //  Advanced features
     //  admin: operation
     //      void    changePwd   (String usr, String newPwd);
     //      boolean addUser     (String usr, String pwd);

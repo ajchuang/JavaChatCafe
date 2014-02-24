@@ -28,7 +28,7 @@ public class Server_UserObject {
         m_blockList = new HashSet<String> ();
         m_blockedBy = new HashSet<String> ();
         
-        m_offlineMsgs = new Vector<Server_UserOfflineMsg> ();
+        m_offlineMsgs = new LinkedList<Server_UserOfflineMsg> ();
     }
     
     public String myNameIs () {
@@ -51,24 +51,25 @@ public class Server_UserObject {
             return false;
     }
     
-    public boolean setBarredTill (Date d) {
+    public boolean setBarredTill (Date d, InetAddress ip) {
         
         if (d.after (m_barredSince) == true) {
             m_barredSince.setTime (d.getTime ());
+            m_loginIp = ip;
             return true;
         }
         
         return false;
     }
     
-    public boolean isBarred () {
-        Date now;
+    public boolean isBarred (InetAddress ip) {
+        Date now = new Date ();
         long diff = now.getTime () - m_barredSince.getTime ();
         
-        if (diff >= (SystemParam.BLOCK_TIME * 1000))
-            return false;
-        else
+        if (diff <= (SystemParam.BLOCK_TIME * 1000) && ip == m_loginIp)
             return true;
+        else
+            return false;
     }
     
     // block list
