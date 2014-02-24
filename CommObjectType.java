@@ -22,8 +22,11 @@ public enum CommObjectType {
     
     E_COMM_REQ_BLOCK_USR,       // to Client
     E_COMM_RSP_BLOCK_USR,       // to Client
+    E_COMM_REJ_BLOCK_USR,       // to Client
+    
     E_COMM_REQ_UNBLOCK_USR,     // to Client
     E_COMM_RSP_UNBLOCK_USR,     // to Client
+    E_COMM_REJ_UNBLOCK_USR,     // to Client
     
     E_COMM_REQ_LOGOUT,          // from client
     

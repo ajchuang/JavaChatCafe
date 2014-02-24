@@ -117,6 +117,7 @@ public class Server_ProcThread implements Runnable {
         
         // 1. check credentials
         Server.log ("Incoming usr:" + name + ":" + pwd);
+        m_userDB.setUserLoginAddr (name, ip);
         isAuth      = m_userDB.authenticateUsr (name, pwd);
         isAllowed   = m_userDB.isAllowLogin (name, ip);
         
@@ -315,6 +316,104 @@ public class Server_ProcThread implements Runnable {
         }
     }
     
+    void handleBlockReq (Server_Command sCmd) {
+        
+        Server.log ("handleBlockReq");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.log ("Bad type @ handleBlockReq");
+            return;
+        }
+        
+        int cid = sCmd.getMyCid ();
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (cid);
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        
+        String blocked = sCmd_v.getStringAt (0);
+        String user = m_userDB.cidToName (cid);
+        
+        if (blocked.equals (user) == true) {
+            // you dont block yourself.
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_BLOCK_REJ, cid);
+            sc.pushString (blocked);
+            sc.pushString ("you're trying to block yourself");
+            cwt.enqueueCmd (sc);
+            return;
+        }
+        
+        if (m_userDB.isValidUser (blocked) == false) {
+            // reject the request - user not exist
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_BLOCK_REJ, cid);
+            sc.pushString (blocked);
+            sc.pushString ("not a valid user");
+            cwt.enqueueCmd (sc);
+            return;
+        }
+        
+        if (m_userDB.setBlockUser (user, blocked) == true) {
+            // ok
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_BLOCK_RSP, cid);
+            sc.pushString (blocked);
+            cwt.enqueueCmd (sc);
+            return;
+        } else {
+            // failed
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_BLOCK_REJ, cid);
+            sc.pushString (blocked);
+            sc.pushString ("possible Internal error");
+            cwt.enqueueCmd (sc);
+            return;
+        }
+    }
+    
+    void handleUnblockReq (Server_Command sCmd) {
+        
+        Server.log ("handleUnblockReq");
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.log ("Bad type @ handleBlockReq");
+            return;
+        }
+        
+        int cid = sCmd.getMyCid ();
+        Server_ClientWorkerThread cwt = m_clntThreadPool.get (cid);
+        Server_Command_StrVec sCmd_v = (Server_Command_StrVec) sCmd;
+        
+        String unblock = sCmd_v.getStringAt (0);
+        String user = m_userDB.cidToName (cid);
+        
+        if (unblock.equals (user)) {
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_UNBLOCK_REJ, cid);
+                sc.pushString (unblock);
+                sc.pushString ("you're trying to block yourself");
+                cwt.enqueueCmd (sc);
+        }
+        
+        if (m_userDB.isValidUser (unblock) == false) {
+            // reject the request - user not exist
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_UNBLOCK_REJ, cid);
+            sc.pushString (unblock);
+            sc.pushString ("not a valid user");
+            cwt.enqueueCmd (sc);
+            return;
+        }
+        
+        if (m_userDB.setUnblockUser (user, unblock) == true) {
+            // ok
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_UNBLOCK_RSP, cid);
+            sc.pushString (unblock);
+            cwt.enqueueCmd (sc);
+            return;
+        } else {
+            // failed
+            Server_Command_StrVec sc = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_UNBLOCK_REJ, cid);
+            sc.pushString (unblock);
+            sc.pushString ("possible Internal errors");
+            cwt.enqueueCmd (sc);
+            return;
+        }
+    }
+    
     void handleLogoutDone (Server_Command sCmd) {
         // @lfred: client is leaving
         // do stats update
@@ -325,7 +424,20 @@ public class Server_ProcThread implements Runnable {
         
         Server.log ("handleForceCleanReq");
         
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.log ("bad type @ handleForceCleanReq");
+            return;
+        }
+        
+        Server_Command_StrVec v = (Server_Command_StrVec) sCmd;
+        
         int cid = sCmd.getMyCid ();
+        String name = v.getStringAt (0);
+        Date now = new Date ();
+        Socket sk = m_clients.get (cid);
+        
+        // actually bar user
+        m_userDB.barUsr (name, now, sk.getInetAddress ());
         
         // clear the data structure
         Socket s = m_clients.remove (cid);
@@ -401,6 +513,14 @@ public class Server_ProcThread implements Runnable {
                 
                 case M_SERV_CMD_RESP_WHOELSELASTHR:
                     handleWholasthrRes (sCmd);
+                break;
+                
+                case M_SERV_CMD_BLOCK_REQ:
+                    handleBlockReq (sCmd);
+                break;
+                    
+                case M_SERV_CMD_UNBLOCK_REQ:
+                    handleUnblockReq (sCmd);
                 break;
                 
                 default:

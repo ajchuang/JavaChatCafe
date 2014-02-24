@@ -11,8 +11,8 @@ public class Server_ClientWorkerThread implements Runnable {
     ObjectOutputStream m_oStream;
     int m_loginFailCount;
 
-
     int m_userId;
+    String m_loginName;
     
     public Server_ClientWorkerThread (int userId, Socket skt) {
         
@@ -27,7 +27,6 @@ public class Server_ClientWorkerThread implements Runnable {
             Server.logBug ("Should not happen");
             e.printStackTrace ();
         }
-        //m_state = M_CLIENT_STATE_CONNECTED;
     }
     
     public void enqueueCmd (Server_Command sCmd) {
@@ -72,17 +71,20 @@ public class Server_ClientWorkerThread implements Runnable {
             return;
         }
         
+        sCmd_v = (Server_Command_StrVec) sCmd;
+        String name = sCmd_v.getStringAt (0);
+        
         CommObject co = new CommObject (CommObjectType.E_COMM_RESP_LOGIN_FAIL);
         sendToClient (co);
         
         m_loginFailCount++;
         
         // this thread has failed 3 times.
-        
-        if (m_loginFailCount == 3) {
+        if (m_loginFailCount == SystemParam.MAX_LOGIN_TRIES - 1) {
             Server.log ("login fail 3 times - init force close procedure.");
             
-            Server_Command s = new Server_Command (Server_CmdType.M_SERV_CMD_FORCE_CLEAN_REQ, m_userId);
+            Server_Command_StrVec s = new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_FORCE_CLEAN_REQ, m_userId);
+            s.pushString (name);
             Server_ProcThread.getServProcThread().enqueueCmd (s);
         }
     }
@@ -197,6 +199,72 @@ public class Server_ClientWorkerThread implements Runnable {
              
         sendToClient (co);
     }
+    
+    void handleBlockRsp (Server_Command sCmd) {
+        
+        Server_Command_StrVec sCmdv;
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleBlockRsp");
+            return;
+        }
+        
+        sCmdv = (Server_Command_StrVec) sCmd;
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_RSP_BLOCK_USR);
+        co.pushString (sCmdv.getStringAt (0));
+        sendToClient (co);
+    }
+    
+    void handleBlockRej (Server_Command sCmd) {
+        
+        Server_Command_StrVec sCmdv;
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleBlockRej");
+            return;
+        }
+        
+        sCmdv = (Server_Command_StrVec) sCmd;
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_REJ_BLOCK_USR);
+        co.pushString (sCmdv.getStringAt (0));
+        co.pushString (sCmdv.getStringAt (1));
+        sendToClient (co);
+    }
+    
+    void handleUnblockRsp (Server_Command sCmd) {
+        
+        Server_Command_StrVec sCmdv;
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleUnblockRsp");
+            return;
+        }
+        
+        sCmdv = (Server_Command_StrVec) sCmd;
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_RSP_UNBLOCK_USR);
+        co.pushString (sCmdv.getStringAt (0));
+        sendToClient (co);
+    }
+    
+    void handleUnblockRej (Server_Command sCmd) {
+        
+        Server_Command_StrVec sCmdv;
+        
+        if (sCmd instanceof Server_Command_StrVec == false) {
+            Server.logBug ("Bad Type @ handleBlockRej");
+            return;
+        }
+        
+        sCmdv = (Server_Command_StrVec) sCmd;
+        
+        CommObject co = new CommObject (CommObjectType.E_COMM_REJ_UNBLOCK_USR);
+        co.pushString (sCmdv.getStringAt (0));
+        co.pushString (sCmdv.getStringAt (1));
+        sendToClient (co);
+    }
 
     public void run () {
         
@@ -257,6 +325,22 @@ public class Server_ClientWorkerThread implements Runnable {
                     handleOfflineMsgInd (sCmd);
                 break;
                 
+                case M_SERV_CMD_BLOCK_RSP:
+                    handleBlockRsp (sCmd);
+                break;
+                
+                case M_SERV_CMD_BLOCK_REJ:
+                    handleBlockRej (sCmd);
+                break;
+                
+                case M_SERV_CMD_UNBLOCK_RSP:
+                    handleUnblockRsp (sCmd);
+                break;
+                
+                case M_SERV_CMD_UNBLOCK_REJ:
+                    handleUnblockRej (sCmd);
+                break;
+                
                 case M_SERV_CMD_REQ_LOGOUT:
                     handleLogoutReq (sCmd);
                     Server.log ("Server_ClientWorker is off");
@@ -268,8 +352,5 @@ public class Server_ClientWorkerThread implements Runnable {
             }
             
         } // while (true)
-        
-        
-    
     }
 }

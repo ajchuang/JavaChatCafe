@@ -20,7 +20,13 @@ public enum Client_CmdType {
     E_CMD_LOGOUT_REQ,
 
     E_CMD_BLOCK_REQ,
-    E_CMD_UNBLOCK_REQ,
+    E_CMD_BLOCK_RSP,
+    E_CMD_BLOCK_REJ,
     
+    E_CMD_UNBLOCK_REQ,
+    E_CMD_UNBLOCK_RSP,
+    E_CMD_UNBLOCK_REJ,
+    
+    E_CMD_HELP_CMD,
     E_CMD_INVALID_CMD
 }

@@ -68,7 +68,9 @@ public class Server_UserObject {
         Date now = new Date ();
         long diff = now.getTime () - m_barredSince.getTime ();
         
-        if (diff <= (SystemParam.BLOCK_TIME * 1000) && ip == m_loginIp)
+        Server_UserDatabase.log ("isBarred: " + Long.toString (diff));
+        
+        if (diff < 0 && ip == m_loginIp)
             return true;
         else
             return false;

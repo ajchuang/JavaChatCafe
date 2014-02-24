@@ -83,6 +83,42 @@ public class Client {
         System.exit (0);
     }
     
+    void handleBlockRsp (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_BLOCK_RSP);
+        
+        for (int i=0; i<co.getNumOfStr(); ++i)
+            cc.pushString (co.getStringAt (i));
+            
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleBlockRej (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_BLOCK_REJ);
+        
+        for (int i=0; i<co.getNumOfStr(); ++i)
+            cc.pushString (co.getStringAt (i));
+            
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleUnblockRsp (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_UNBLOCK_RSP);
+        
+        for (int i=0; i<co.getNumOfStr(); ++i)
+            cc.pushString (co.getStringAt (i));
+            
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
+    void handleUnblockRej (CommObject co) {
+        Client_Command cc = new Client_Command (Client_CmdType.E_CMD_UNBLOCK_REJ);
+        
+        for (int i=0; i<co.getNumOfStr(); ++i)
+            cc.pushString (co.getStringAt (i));
+            
+        Client_ProcThread.getProcThread ().enqueueCmd (cc);
+    }
+    
     public void msgHandler (CommObject co, Client_LoginWindow clw) {
         
         switch (co.getOpCode ()) {
@@ -107,16 +143,37 @@ public class Client {
                 handleWholasthrRsp (co);
             break;
         
+            // bcast info
             case E_COMM_RESP_BROADCAST:
                 handleBroadcastRsp (co);
             break;
         
+            // some send msg to you
             case E_COMM_IND_MESSAGE:
                 handleMsgRsp (co);
             break;
             
+            // the msg is blocked
             case E_COMM_REJ_MESSAGE:
                 handleMsgRej (co);
+            break;
+            
+            // block
+            case E_COMM_RSP_BLOCK_USR:
+                handleBlockRsp (co);
+            break;
+            
+            case E_COMM_REJ_BLOCK_USR:
+                handleBlockRej (co);
+            break;
+            
+            // unblock
+            case E_COMM_RSP_UNBLOCK_USR:
+                handleUnblockRsp (co);
+            break;
+            
+            case E_COMM_REJ_UNBLOCK_USR:
+                handleUnblockRej (co);
             break;
             
             case E_COMM_IND_OFFLINE_MSG:

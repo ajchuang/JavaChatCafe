@@ -21,6 +21,15 @@
     
     M_SERV_CMD_RESP_BROADCAST,
     
+    M_SERV_CMD_BLOCK_REQ,
+    M_SERV_CMD_BLOCK_RSP,
+    M_SERV_CMD_BLOCK_REJ,
+    
+    M_SERV_CMD_UNBLOCK_REQ,
+    M_SERV_CMD_UNBLOCK_RSP,
+    M_SERV_CMD_UNBLOCK_REJ,
+    
+    
     M_SERV_CMD_CLNT_DOWN,           // used in some case that the user is dead or not responding.
     
     M_SERV_CMD_REQ_LOGOUT,

@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import javax.swing.text.*;
 
 public class Client_ChatWindow extends JFrame implements ActionListener {
 
@@ -44,6 +45,9 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         c1.fill = GridBagConstraints.NONE;
         c1.anchor = GridBagConstraints.CENTER;
         add (jp, c1);
+        
+        DefaultCaret caret = (DefaultCaret)m_chatBoard.getCaret();
+        caret.setUpdatePolicy (DefaultCaret.ALWAYS_UPDATE);
 
         m_cmdText = new JTextField (33);
         GridBagConstraints c2 = new GridBagConstraints ();
@@ -83,6 +87,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
         
         addWindowListener (new WindowAdapter () {
                 public void windowOpened (WindowEvent e) {
+                m_chatBoard.append ("Use 'help' to list supported commands" + NEW_LINE);    
                 m_cmdText.requestFocus ();
             }
         }); 
@@ -124,9 +129,7 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
 
             // @lfred: commands with 1 param
             case E_CMD_BLOCK_REQ:
-            case E_CMD_UNBLOCK_REQ:
-            case E_CMD_BROADCAST_REQ: {
-                
+            case E_CMD_UNBLOCK_REQ: {
                 if (strToken.hasMoreElements ()) {
                     
                     p1 = strToken.nextToken ();
@@ -144,6 +147,27 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                 }
             } 
             break;
+            
+            // @lfred: 1 param with different parsing algo
+            case E_CMD_BROADCAST_REQ: {
+                if (strToken.hasMoreElements ()) {
+                    
+                    p1 = str.substring (str.indexOf (cmd) + cmd.length());
+                    Client.log ("bcast: " + p1);
+                    
+                    if (p1 != null) {
+                        cc = new Client_Command (cmdIdx);
+                        cc.pushString (p1);
+                    } else {
+                        Client.logBug ("Empty P1 - incorrect format");
+                        return null;
+                    }
+                } else {
+                    Client.logBug ("Incorrect User Command");
+                    return null;
+                }
+                
+            } break;
 
             // @lfred: commands with 2 params
             case E_CMD_MESSAGE_REQ: {
@@ -170,7 +194,27 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
                     Client.logBug ("!!! Incorrect User Command !!!");
                     return null;
                 }
-            } break;
+            } 
+            break;
+            
+            case E_CMD_HELP_CMD: {
+                
+                String cmds[] = Client_ProcThread.getProcThread ().getSupportedCommand ();
+                
+                m_chatBoard.append ("Supported commands: " + NEW_LINE);
+                
+                for (int i=0; i<7; ++i) {
+                    m_chatBoard.append (cmds[i] + NEW_LINE);
+                }
+                
+                m_chatBoard.append (NEW_LINE + "Supported shorthand commands: " + NEW_LINE);
+                m_chatBoard.append ("m for message" + NEW_LINE);
+                m_chatBoard.append ("b for broadcast" + NEW_LINE);
+                m_chatBoard.append ("lo for logout" + NEW_LINE);
+                
+                cc = new Client_Command (cmdIdx);
+            }
+            break;
         }
     
         return cc;
@@ -199,8 +243,10 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             Client_Command cc = parsingCommand (t);
             
             if (cc != null) {
-                Client_ProcThread.getProcThread ().enqueueCmd (cc);
-                m_cmdText.setText (null);
+                if (cc.getCmdType () != Client_CmdType.E_CMD_HELP_CMD) {
+                    Client_ProcThread.getProcThread ().enqueueCmd (cc);
+                    m_cmdText.setText (null);
+                }
             } else {
                 
                 // @lfred: a simple notice to notify that you're wrong.
@@ -288,6 +334,15 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             m_chatBoard.append ("*System Info* You blocked " + usr + NEW_LINE);
         else
             m_chatBoard.append ("*System Info* You unblocked " + usr + NEW_LINE);
+    }
+    
+    public void displayBlockingFailInfo (String usr, String reason, boolean isBlocking) {
+        
+        if (isBlocking == true) {
+            m_chatBoard.append ("*System Info* Failed to block " + usr + " because of " + reason + NEW_LINE);
+        } else {
+            m_chatBoard.append ("*System Info* Failed to unblock " + usr + " because of " + reason + NEW_LINE);
+        }
     }
     
     public void displayBlockedInfo (String usr) {

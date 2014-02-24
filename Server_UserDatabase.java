@@ -225,6 +225,34 @@ public class Server_UserDatabase {
             return s.am_I_blocked_by_usr (receiver);
     }
     
+    public boolean setBlockUser (String user, String blocker) {
+        
+        Server_UserObject owner     = m_nameIdx.get (user);
+        Server_UserObject blocked   = m_nameIdx.get (blocker);
+        
+        if (owner == null || blocked == null) 
+            return false;
+        else {
+            owner.addBlockList (blocker);
+            blocked.beingBlockedBy (user);
+            return true;
+        } 
+    }
+    
+    public boolean setUnblockUser (String user, String unblock) {
+        
+        Server_UserObject owner     = m_nameIdx.get (user);
+        Server_UserObject unblocked = m_nameIdx.get (unblock);
+        
+        if (owner == null || unblocked == null) 
+            return false;
+        else {
+            owner.removeBlockList (unblock);
+            unblocked.removeBlockedBy (user);
+            return true;
+        }
+    }
+    
     // login permission check
     public boolean isAllowLogin  (String name, InetAddress ip) {
         
@@ -242,9 +270,22 @@ public class Server_UserDatabase {
             return true;
     }
     
+    public boolean setUserLoginAddr (String name, InetAddress ip) {
+        Server_UserDatabase.log ("isAllowLogin");
+        Server_UserObject usr = m_nameIdx.get (name);
+        
+        if (usr == null) {
+            Server_UserDatabase.log ("No such user: " + usr);
+            return false;
+        }
+        
+        usr.setLoginAddr (ip);
+        return true;
+    }
+    
     public void barUsr (String name, Date time, InetAddress ip) {
         
-        Server_UserDatabase.log ("barUsr");
+        Server_UserDatabase.log ("barUsr: " + name + " till " + Long.toString (time.getTime()) + " from " + ip.toString ());
         Server_UserObject usr = m_nameIdx.get (name);
         
         if (usr == null) {

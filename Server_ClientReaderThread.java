@@ -109,6 +109,28 @@ public class Server_ClientReaderThread implements Runnable {
             new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_RESP_WHOELSELASTHR, m_cid);
         Server_ProcThread.getServProcThread().enqueueCmd (sc);
     }
+    
+    void handleBlockReq (CommObject co) {
+        
+        Server.log ("handleBlockReq");
+        
+        Server_Command_StrVec sc = 
+            new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_BLOCK_REQ, m_cid);
+        sc.pushString (co.getStringAt (0));
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+        
+    }
+    
+    void handleUnblockReq (CommObject co) {
+        
+        Server.log ("handleUnblockReq");
+        
+        Server_Command_StrVec sc = 
+            new Server_Command_StrVec (Server_CmdType.M_SERV_CMD_UNBLOCK_REQ, m_cid);
+        sc.pushString (co.getStringAt (0));
+        Server_ProcThread.getServProcThread().enqueueCmd (sc);
+    }
+
 
     public void run () {
 
@@ -165,6 +187,14 @@ public class Server_ClientReaderThread implements Runnable {
                         
                         case E_COMM_REQ_WHOLASTHR:
                             handleWholastHrReq (co);
+                        break;
+                        
+                        case E_COMM_REQ_BLOCK_USR:
+                            handleBlockReq (co);
+                        break;
+                        
+                        case E_COMM_REQ_UNBLOCK_USR:
+                            handleUnblockReq (co);
                         break;
                         
                         case E_COMM_REQ_LOGOUT:

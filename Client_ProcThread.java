@@ -14,7 +14,12 @@ public class Client_ProcThread implements Runnable {
         new String ("message"),
         new String ("block"),
         new String ("unblock"),
-        new String ("logout")};
+        new String ("logout"),
+        
+        new String ("m"),
+        new String ("b"),
+        new String ("lo"),
+        new String ("help") };
         
     // @lfred: The singleton trick
     static Client_ProcThread m_procThread = null;
@@ -85,6 +90,15 @@ public class Client_ProcThread implements Runnable {
         m_supportedCmdTable.put (m_supportedCmd[4], Client_CmdType.E_CMD_BLOCK_REQ);
         m_supportedCmdTable.put (m_supportedCmd[5], Client_CmdType.E_CMD_UNBLOCK_REQ);
         m_supportedCmdTable.put (m_supportedCmd[6], Client_CmdType.E_CMD_LOGOUT_REQ);
+        
+        m_supportedCmdTable.put (m_supportedCmd[7], Client_CmdType.E_CMD_MESSAGE_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[8], Client_CmdType.E_CMD_BROADCAST_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[9], Client_CmdType.E_CMD_LOGOUT_REQ);
+        m_supportedCmdTable.put (m_supportedCmd[10], Client_CmdType.E_CMD_HELP_CMD);
+    }
+    
+    public String[] getSupportedCommand () {
+        return m_supportedCmd;
     }
 
     public ObjectInputStream getInputStream () {
@@ -176,20 +190,26 @@ public class Client_ProcThread implements Runnable {
         
         String user = cCmd.getStringAt (0);
         Client.log ("handleBlockReq: " + user);
-        m_blockedUsers.add (user); 
-        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
-        cWin.displayBlockingInfo (user, true);
+        //m_blockedUsers.add (user); 
+        //Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        //cWin.displayBlockingInfo (user, true);
         
-        CommObject cc = new CommObject (CommObjectType.);              
+        CommObject cc = new CommObject (CommObjectType.E_COMM_REQ_BLOCK_USR);
+        cc.pushString (user);
+        sendToServer (cc);              
     }
     
     void handleUnblockReq (Client_Command cCmd) {
         
         String user = cCmd.getStringAt (0);
         Client.log ("handleUnblockReq: " + user);
-        m_blockedUsers.remove (user);    
-        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
-        cWin.displayBlockingInfo (user, false);
+        //m_blockedUsers.remove (user);    
+        //Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        //cWin.displayBlockingInfo (user, false);
+        
+        CommObject cc = new CommObject (CommObjectType.E_COMM_REQ_UNBLOCK_USR);
+        cc.pushString (user);
+        sendToServer (cc);
     }
     
     void handleWhoelseReq (Client_Command cCmd) {
@@ -290,6 +310,42 @@ public class Client_ProcThread implements Runnable {
         
         System.exit (0);
     }
+    
+    void handleBlockRsp (Client_Command cCmd) {
+        
+        Client.log ("handleBlockRsp");
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayBlockingInfo (cCmd.getStringAt (0), true);
+    }
+    
+    void handleBlockRej (Client_Command cCmd) {
+        
+        Client.log ("handleBlockRej");
+        
+        String u = cCmd.getStringAt (0);
+        String reason = cCmd.getStringAt (1);
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayBlockingFailInfo (u, reason, true);
+    }
+    
+    void handleUnblockRsp (Client_Command cCmd) {
+        Client.log ("handleUnblockRsp");
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayBlockingInfo (cCmd.getStringAt (0), false);
+    }
+
+    void handleUnblockRej (Client_Command cCmd) {
+        Client.log ("handleUnblockRej");
+        
+        String u = cCmd.getStringAt (0);
+        String reason = cCmd.getStringAt (1);
+        
+        Client_ChatWindow cWin = Client_ChatWindow.getChatWindow ();
+        cWin.displayBlockingFailInfo (u, reason, false);
+    }
 
     public void run () {
         
@@ -369,6 +425,22 @@ public class Client_ProcThread implements Runnable {
                 
                 case E_CMD_WHOLASTH_RSP:
                     handleWholasthr (cCmd);
+                break;
+                
+                case E_CMD_BLOCK_RSP:
+                    handleBlockRsp (cCmd);
+                break;
+                
+                case E_CMD_BLOCK_REJ:
+                    handleBlockRej (cCmd);
+                break;
+                
+                case E_CMD_UNBLOCK_RSP:
+                    handleUnblockRsp (cCmd);
+                break;
+                
+                case E_CMD_UNBLOCK_REJ:
+                    handleUnblockRej (cCmd);
                 break;
                 
                 //--------------------------------------------------------------
