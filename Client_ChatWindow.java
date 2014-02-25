@@ -34,7 +34,8 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
     public static Client_ChatWindow getChatWindow () {
         
         if (mp_chatWin == null) {
-            Client.logBug ("System error @ getChatWindow");
+            Client.logBug ("System error @ getChatWindow - try to recover");
+            mp_chatWin = new Client_ChatWindow ("No Name");
         }
         
         return mp_chatWin;
