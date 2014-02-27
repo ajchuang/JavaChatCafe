@@ -122,6 +122,7 @@ public class Client_LoginWindow extends JFrame implements ActionListener {
 
             // TODO: shutdown the client
             System.out.println ("Cancel Button is performed.");
+            System.exit (0);
         }
     }
 

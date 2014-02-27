@@ -240,7 +240,7 @@ public class Server_ClientReaderThread implements Runnable {
                         
                         case E_COMM_REQ_LOGOUT:
                             handleLogoutReq (co);
-                            Server.log ("Server_ClientWorker is off");
+                            Server.log ("Server_ClientReader is off");
                         return;
                         
                         default:
