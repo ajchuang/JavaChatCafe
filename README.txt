@@ -1,5 +1,10 @@
 README.txt  - by Jen-Chieh Huang (jh3478)
 
+!!!IMPORTANT!!!
+if you want to change the parameters (BLOCK_TIME, ...), 
+please go to SystemParam.java
+Change the corresponding settings, rebuild, and restart the server.
+
 DESCRIPTION
 This is a cute little client-server chat room program. In this program, a message-based is exploited to solve the 
 concurrency and synchronization issues. The following part of this document explains the architecture.
@@ -47,9 +52,16 @@ DEVELOPMENT ENVIRONEMT
     3.  The editor I am using is Editra (open source python editor @ MAC) and PSPad (shareware @ windows)
     4.  The build scripts include mac version (make.sh) and windows version (make.bat).
     
-HOW TO RUN
+HOW TO BUILD
     1.  Please use ./make.sh (@ OS X, Linux, Unix...) or ./make.bat (@ windows) to build whole system. It should be 
         completed without any error or warning.
+        
+    2.  You can also build the codes using make. Just make, and the makefile will do the rest for you. 
+        (Recommend the 1st way though)
+
+HOW TO RUN
+    0.  Change the system param - go to SystemParam.java, and change whatever you want.
+    1.  Build the codes (refer to the previous section)
     2.  Start the server with the command, java Server [port]. For example, java Server 5566.
     3.  Start the client with the command, java Client [server ip] [port]. For example, java Client localhost 5566.
     4.  Enjoy chatting.

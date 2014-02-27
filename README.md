@@ -1,4 +1,0 @@
-JavaChatCafe
-============
-
-Homework 01
