@@ -367,7 +367,9 @@ public class Client_ChatWindow extends JFrame implements ActionListener {
             m_chatBoard.append ("Other active users: " + subStr);
         
         for (int i=0; i<vStr.size(); ++i)
-            m_chatBoard.append (vStr.elementAt (i) + NEW_LINE);
+            m_chatBoard.append (vStr.elementAt (i) + " ");
+            
+        m_chatBoard.append (NEW_LINE);
     }
     
     public void displayBlockingInfo (String usr, boolean isBlocked) {

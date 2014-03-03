@@ -218,17 +218,36 @@ public class Server_ProcThread implements Runnable {
         Server_Command_StrVec sCmd_v = (Server_Command_StrVec)sCmd;
         String currentUsr = m_userDB.cidToName (sCmd_v.getMyCid ()); 
         Server_ClientWorkerThread wt = m_clntThreadPool.get (sCmd_v.getMyCid ());
+        Vector<String> returnNames = new Vector<String> (); 
         
+        // Step 1. get all current users
+        Set<String> users = m_userDB.getActiveUsers ();
+        Iterator<String> it = users.iterator ();
+        
+        while (it.hasNext ()) {
+            String n = it.next ();
+            
+            // @alfred: per request, skipp the current user
+            if (currentUsr.equals (n) == false)
+                returnNames.add (n);
+        }
+        
+        // Step 2. get all offline users
         Date now = new Date ();
         now.setTime (now.getTime () - SystemParam.LAST_HOUR * 1000);
         Vector<String> ret = m_userDB.onLineAfterTime (now);
         
         for (int i=0; i<ret.size(); ++i) {
             
+            String n = ret.elementAt (i);
             // @lfred: per request of the spec, skip the current user.
-            if (currentUsr.equals (ret.elementAt(i)) == false)
-                sCmd_v.pushString (ret.elementAt(i));
+            if (currentUsr.equals (n) == false && returnNames.contains (n) == false)
+                returnNames.add (n);
         }
+        
+        // Step 3. Put everything inside
+        for (int j = 0; j < returnNames.size(); ++j)
+            sCmd_v.pushString (returnNames.elementAt (j));
             
         wt.enqueueCmd (sCmd_v);
     }
